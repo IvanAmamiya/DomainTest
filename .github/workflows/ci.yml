@@ -1,0 +1,59 @@
+name: DomainTest CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, '3.10']
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        # Note: DomainBed will be installed when needed for actual experiments
+        
+    - name: Test imports and basic functionality
+      run: |
+        python -c "import torch; print('PyTorch version:', torch.__version__)"
+        python -c "import models; print('Models module imported successfully')"
+        python -c "import config_manager; print('Config manager imported successfully')"
+        python -c "import trainer; print('Trainer module imported successfully')"
+        python -c "import results_logger; print('Results logger imported successfully')"
+        
+    - name: Test configuration loading
+      run: |
+        python -c "
+        from config_manager import load_config
+        config = load_config('config.yaml')
+        print('Config loaded successfully')
+        print('Dataset:', config['dataset']['name'])
+        "
+        
+    - name: Validate framework structure
+      run: |
+        python -c "
+        import os
+        required_files = [
+            'main.py', 'config.yaml', 'requirements.txt', 
+            'models.py', 'trainer.py', 'data_loader.py',
+            'results_logger.py', 'setup.sh'
+        ]
+        for file in required_files:
+            assert os.path.exists(file), f'Required file {file} not found'
+        print('All required files present')
+        "
