@@ -1,0 +1,48 @@
+# DomainBed + VGG-16 实验配置文件
+
+# 数据集配置
+dataset:
+  name: "TerraIncognita"  # ColoredMNIST, TerraIncognita, PACS, OfficeHome, VLCS
+  data_dir: "./DomainBed/domainbed/data/"
+  test_env: 0
+  
+# 模型配置
+model:
+  architecture: "vgg16"
+  pretrained: true
+  dropout_rate: 0.5
+  input_channels: null  # null表示自动从数据集获取
+  input_size: null      # null表示自动从数据集获取
+
+# 训练配置
+training:
+  epochs: 1
+  batch_size: 32
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  step_size: 30
+  gamma: 0.1
+  
+# 实验配置
+experiment:
+  name: "vgg16_domain_experiment"
+  device: "auto"  # auto, cuda, cpu
+  num_workers: 4
+  pin_memory: true
+  seed: 42
+  
+# 输出配置
+output:
+  save_model: true
+  model_path: "./models/"
+  results_path: "./results/"
+  log_path: "./logs/"
+  plot_results: true
+  
+# 实验批次配置 (用于批量实验)
+batch_experiments:
+  enabled: true
+  datasets: ["ColoredMNIST"]
+  test_envs: [0, 1]
+  learning_rates: [0.0001, 0.0005]
+  batch_sizes: [16, 32]
