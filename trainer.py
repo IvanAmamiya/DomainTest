@@ -11,6 +11,14 @@ from collections import defaultdict
 from tqdm import tqdm
 import time
 
+# 混合精度训练支持
+try:
+    from torch.cuda.amp import autocast, GradScaler
+    AMP_AVAILABLE = True
+except ImportError:
+    AMP_AVAILABLE = False
+    print("警告: torch.cuda.amp 不可用，将使用常规精度训练")
+
 
 class DomainGeneralizationTrainer:
     """领域泛化训练器"""
@@ -22,6 +30,18 @@ class DomainGeneralizationTrainer:
         self.config = config
         self.device = device
         self.model.to(device)
+        
+        # 混合精度训练设置
+        self.use_amp = config['training'].get('mixed_precision', True) and AMP_AVAILABLE and device.type == 'cuda'
+        if self.use_amp:
+            self.scaler = GradScaler()
+            print("启用混合精度训练 (Automatic Mixed Precision)")
+        else:
+            self.scaler = None
+            if config['training'].get('mixed_precision', True):
+                print("混合精度训练未启用 (CUDA不可用或AMP不支持)")
+            else:
+                print("混合精度训练已禁用")
         
         # 损失函数和优化器
         self.criterion = nn.CrossEntropyLoss()
@@ -81,10 +101,23 @@ class DomainGeneralizationTrainer:
             x, y = x.to(self.device), y.to(self.device)
             
             self.optimizer.zero_grad()
-            outputs = self.model(x)
-            loss = self.criterion(outputs, y)
-            loss.backward()
-            self.optimizer.step()
+            
+            if self.use_amp:
+                # 混合精度训练
+                with autocast():
+                    outputs = self.model(x)
+                    loss = self.criterion(outputs, y)
+                
+                # 反向传播使用scaler
+                self.scaler.scale(loss).backward()
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+            else:
+                # 常规精度训练
+                outputs = self.model(x)
+                loss = self.criterion(outputs, y)
+                loss.backward()
+                self.optimizer.step()
             
             total_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
@@ -112,8 +145,16 @@ class DomainGeneralizationTrainer:
                 
                 for x, y in loader:
                     x, y = x.to(self.device), y.to(self.device)
-                    outputs = self.model(x)
-                    loss = self.criterion(outputs, y)
+                    
+                    if self.use_amp:
+                        # 混合精度推理
+                        with autocast():
+                            outputs = self.model(x)
+                            loss = self.criterion(outputs, y)
+                    else:
+                        # 常规精度推理
+                        outputs = self.model(x)
+                        loss = self.criterion(outputs, y)
                     
                     env_loss += loss.item()
                     _, predicted = torch.max(outputs.data, 1)
@@ -215,7 +256,7 @@ class DomainGeneralizationTrainer:
         
         # 获取模型信息
         from models import get_model_info
-        model_type = self.config['model'].get('type', 'resnet18')
+        model_type = self.config['model'].get('type', 'resnet34')
         model_info = get_model_info(self.model, model_type)
         
         torch.save({

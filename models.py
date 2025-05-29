@@ -58,13 +58,13 @@ class SelfAttentionModule(nn.Module):
         return out
 
 
-class SelfAttentionResNet18(nn.Module):
-    """带有Self-Attention机制的ResNet18"""
+class SelfAttentionResNet34(nn.Module):
+    """带有Self-Attention机制的ResNet34"""
     def __init__(self, num_classes=10, input_channels=3, pretrained=True):
-        super(SelfAttentionResNet18, self).__init__()
+        super(SelfAttentionResNet34, self).__init__()
         
-        # 加载预训练的ResNet18
-        self.backbone = models.resnet18(pretrained=pretrained)
+        # 加载预训练的ResNet34
+        self.backbone = models.resnet34(pretrained=pretrained)
         
         # 调整输入通道数
         if input_channels != 3:
@@ -153,9 +153,9 @@ def create_resnet_model(num_classes, input_channels=3, pretrained=True, model_ty
     return model
 
 
-def create_self_attention_resnet18(num_classes, input_channels=3, pretrained=True):
-    """创建Self-Attention ResNet18模型"""
-    return SelfAttentionResNet18(
+def create_self_attention_resnet34(num_classes, input_channels=3, pretrained=True):
+    """创建Self-Attention ResNet34模型"""
+    return SelfAttentionResNet34(
         num_classes=num_classes,
         input_channels=input_channels,
         pretrained=pretrained
@@ -165,7 +165,7 @@ def create_self_attention_resnet18(num_classes, input_channels=3, pretrained=Tru
 def create_model(config, num_classes, input_shape):
     """根据配置创建模型"""
     input_channels = config['model'].get('input_channels') or input_shape[0]
-    model_type = config['model'].get('type', 'resnet18')
+    model_type = config['model'].get('type', 'resnet34')
     pretrained = config['model'].get('pretrained', True)
     
     if model_type.startswith('resnet'):
@@ -175,8 +175,8 @@ def create_model(config, num_classes, input_shape):
             pretrained=pretrained,
             model_type=model_type
         )
-    elif model_type == 'selfattentionresnet18':
-        model = create_self_attention_resnet18(
+    elif model_type == 'selfattentionresnet34':
+        model = create_self_attention_resnet34(
             num_classes=num_classes,
             input_channels=input_channels,
             pretrained=pretrained
@@ -187,14 +187,14 @@ def create_model(config, num_classes, input_shape):
     return model
 
 
-def get_model_info(model, model_type='resnet18'):
+def get_model_info(model, model_type='resnet34'):
     """获取模型信息"""
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     
     # 根据模型类型设置架构名称
-    if model_type == 'selfattentionresnet18':
-        architecture = 'Self-Attention ResNet18'
+    if model_type == 'selfattentionresnet34':
+        architecture = 'Self-Attention ResNet34'
     elif model_type.startswith('resnet'):
         architecture = model_type.upper()
     else:

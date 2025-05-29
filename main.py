@@ -36,7 +36,7 @@ def run_single_experiment(config):
         
         # 获取模型信息
         from models import get_model_info
-        model_type = config['model'].get('type', 'resnet18')
+        model_type = config['model'].get('type', 'resnet34')
         model_info = get_model_info(model, model_type)
         
         print(f"模型架构: {model_info['architecture']}")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ResNet18 vs Self-Attention ResNet18 对比实验
+ResNet34 vs Self-Attention ResNet34 对比实验
 系统性比较两种模型在不同数据集上的性能
 """
 
@@ -17,7 +17,7 @@ import copy
 
 from config_manager import load_config, setup_experiment
 from data_loader import create_dataloader
-from models import create_resnet_model, create_self_attention_resnet18, get_model_info
+from models import create_resnet_model, create_self_attention_resnet34, get_model_info
 from trainer import DomainGeneralizationTrainer
 from results_logger import create_results_logger
 
@@ -78,14 +78,15 @@ class ComparisonExperiment:
             val_loader = train_loader  # 简化处理，实际项目中应该分割数据集
             
             # 创建模型
-            if model_type == 'resnet18':
+            if model_type == 'resnet34':
                 model = create_resnet_model(
                     num_classes=num_classes,
                     input_channels=input_shape[0],
-                    pretrained=config['model']['pretrained']
+                    pretrained=config['model']['pretrained'],
+                    model_type='resnet34'
                 ).to(self.device)
-            elif model_type == 'selfattentionresnet18':
-                model = create_self_attention_resnet18(
+            elif model_type == 'selfattentionresnet34':
+                model = create_self_attention_resnet34(
                     num_classes=num_classes,
                     input_channels=input_shape[0],
                     pretrained=config['model']['pretrained']
@@ -205,7 +206,7 @@ class ComparisonExperiment:
                 'TerraIncognita': [0, 1, 2, 3]
             }
         
-        model_types = ['resnet18', 'selfattentionresnet18']
+        model_types = ['resnet34', 'selfattentionresnet34']
         
         print(f"开始对比实验:")
         print(f"模型类型: {model_types}")
@@ -534,13 +535,13 @@ class ComparisonExperiment:
 
 def main():
     """主函数"""
-    print("开始 ResNet18 vs Self-Attention ResNet18 对比实验")
+    print("开始 ResNet34 vs Self-Attention ResNet34 对比实验")
     
     # 创建实验管理器
     experiment = ComparisonExperiment()
     
-    # 修改配置以进行epoch为100的实验
-    experiment.config['training']['epochs'] = 100
+    # 修改配置以进行epoch为150的实验
+    experiment.config['training']['epochs'] = 150
     
     # 配置实验
     datasets = ['ColoredMNIST']  # 可以添加更多数据集
