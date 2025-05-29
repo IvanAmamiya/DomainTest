@@ -1,0 +1,2 @@
+timestamp,experiment_name,dataset_name,test_env,input_shape,num_classes,num_environments,model_architecture,total_parameters,trainable_parameters,pretrained,dropout_rate,epochs,batch_size,learning_rate,weight_decay,final_train_acc,final_test_acc,best_test_acc,final_train_loss,final_test_loss,total_training_time,avg_epoch_time,device
+20250529_235644,resnet_domain_experiment,ColoredMNIST,0,"(2, 28, 28)",2,3,Self-Attention ResNet18,11959926,11959926,True,0.0,2,256,0.1,0.0001,0.4935713367333819,0.49790005999828574,0.49790005999828574,,,31.150264263153076,15.575132131576538,auto

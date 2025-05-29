@@ -144,6 +144,7 @@ class ComparisonExperiment:
                 'training_time': training_time,
                 'model_info': model_info,
                 'train_history': train_history,
+                'test_history': test_history,  # 添加测试历史数据
                 'model_path': str(model_path),
                 'success': True
             }
@@ -390,16 +391,27 @@ class ComparisonExperiment:
             # Plot accuracies on ax2
             for model_type in epoch_df['Model'].unique():
                 model_epoch_df = epoch_df[epoch_df['Model'] == model_type]
-                avg_epoch_df = model_epoch_df.groupby('Epoch').mean().reset_index()
-                ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Accuracy'], marker='o', linestyle='-', label=f'{model_type} Train Acc')
-                ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Accuracy_Epoch'], marker='x', linestyle='--', label=f'{model_type} Test Acc (Epoch Avg)')
+                # Only aggregate numeric columns
+                numeric_cols = ['Train_Loss', 'Train_Accuracy', 'Test_Loss', 'Test_Accuracy_Epoch']
+                available_cols = [col for col in numeric_cols if col in model_epoch_df.columns]
+                avg_epoch_df = model_epoch_df.groupby('Epoch')[available_cols].mean().reset_index()
+                
+                if 'Train_Accuracy' in avg_epoch_df.columns:
+                    ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Accuracy'], marker='o', linestyle='-', label=f'{model_type} Train Acc')
+                if 'Test_Accuracy_Epoch' in avg_epoch_df.columns:
+                    ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Accuracy_Epoch'], marker='x', linestyle='--', label=f'{model_type} Test Acc (Epoch Avg)')
             
             ax2_twin = ax2.twinx() # Create twin axis for loss
             # Plot losses on ax2_twin
             for model_type in epoch_df['Model'].unique():
                 model_epoch_df = epoch_df[epoch_df['Model'] == model_type]
-                avg_epoch_df = model_epoch_df.groupby('Epoch').mean().reset_index()
-                ax2_twin.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Loss'], marker='s', linestyle=':', alpha=0.7, label=f'{model_type} Train Loss')
+                # Only aggregate numeric columns
+                numeric_cols = ['Train_Loss', 'Train_Accuracy', 'Test_Loss', 'Test_Accuracy_Epoch']
+                available_cols = [col for col in numeric_cols if col in model_epoch_df.columns]
+                avg_epoch_df = model_epoch_df.groupby('Epoch')[available_cols].mean().reset_index()
+                
+                if 'Train_Loss' in avg_epoch_df.columns:
+                    ax2_twin.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Loss'], marker='s', linestyle=':', alpha=0.7, label=f'{model_type} Train Loss')
                 if 'Test_Loss' in avg_epoch_df.columns and not avg_epoch_df['Test_Loss'].isnull().all():
                      ax2_twin.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Loss'], marker='^', linestyle='-.', alpha=0.7, label=f'{model_type} Test Loss (Epoch Avg)')
         
@@ -527,8 +539,8 @@ def main():
     # 创建实验管理器
     experiment = ComparisonExperiment()
     
-    # 修改配置以进行epoch为2的实验
-    experiment.config['training']['epochs'] = 2
+    # 修改配置以进行epoch为100的实验
+    experiment.config['training']['epochs'] = 100
     
     # 配置实验
     datasets = ['ColoredMNIST']  # 可以添加更多数据集

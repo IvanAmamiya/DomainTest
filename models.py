@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
+import math
 
 
 class SelfAttentionModule(nn.Module):
@@ -36,14 +37,13 @@ class SelfAttentionModule(nn.Module):
         key = self.key_conv(x).view(batch_size, -1, height * width)
         value = self.value_conv(x).view(batch_size, -1, height * width)
         
-        # 计算注意力权重
+        # 计算注意力权重 (QK^T)
         attention = torch.bmm(query, key)
         
-        # 添加缩放以稳定Softmax
-        # d_k 是 query/key 向量的维度
-        d_k = query.size(-1) 
-        if d_k > 0: # 避免除以零 (尽管 in_channels // reduction 应该总是 > 0)
-            attention = attention / (d_k ** 0.5)
+        # 添加缩放以稳定Softmax - 使用 key 的维度
+        # key 的形状是 (batch_size, key_dim, height*width)
+        key_dim = key.size(1)  # 这是 in_channels // reduction
+        attention = attention / math.sqrt(key_dim)
             
         attention = self.softmax(attention)
         

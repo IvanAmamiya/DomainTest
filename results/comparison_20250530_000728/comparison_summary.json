@@ -1,0 +1,37 @@
+{
+  "resnet18": {
+    "avg_test_accuracy": 0.3664265720148596,
+    "std_test_accuracy": 0.2142429009754013,
+    "avg_training_time": 27.04538083076477,
+    "total_parameters": 11174402,
+    "architecture": "RESNET18",
+    "best_test_accuracy": 0.5063855318419473,
+    "worst_test_accuracy": 0.1197874255346505,
+    "avg_train_accuracy": 0.6151991623016898,
+    "std_train_accuracy": 0.2015094011333291,
+    "best_train_accuracy": 0.8478796580024428,
+    "worst_train_accuracy": 0.49792139887712683,
+    "experiments_count": 3
+  },
+  "selfattentionresnet18": {
+    "avg_test_accuracy": 0.4952000453035161,
+    "std_test_accuracy": 0.002846948817100348,
+    "avg_training_time": 32.99495800336202,
+    "total_parameters": 11959926,
+    "architecture": "Self-Attention ResNet18",
+    "best_test_accuracy": 0.4975356790811297,
+    "worst_test_accuracy": 0.49202879917716635,
+    "avg_train_accuracy": 0.4947999982647631,
+    "std_train_accuracy": 0.0016314676626741629,
+    "best_train_accuracy": 0.4965393104334969,
+    "worst_train_accuracy": 0.49330361925986244,
+    "experiments_count": 3
+  },
+  "comparison": {
+    "accuracy_difference": 0.12877347328865646,
+    "time_difference": 5.949577172597252,
+    "parameter_difference": 785524,
+    "better_model_accuracy": "selfattentionresnet18",
+    "faster_model": "resnet18"
+  }
+}
