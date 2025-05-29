@@ -1,0 +1,44 @@
+[
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "error": "too many values to unpack (expected 2)",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "error": "too many values to unpack (expected 2)",
+    "success": false
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "error": "too many values to unpack (expected 2)",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "error": "too many values to unpack (expected 2)",
+    "success": false
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "error": "too many values to unpack (expected 2)",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "error": "too many values to unpack (expected 2)",
+    "success": false
+  }
+]

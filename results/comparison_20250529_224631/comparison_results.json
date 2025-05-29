@@ -1,0 +1,44 @@
+[
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "error": "'ResultsLogger' object has no attribute 'log_final_results'",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "error": "'ResultsLogger' object has no attribute 'log_final_results'",
+    "success": false
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "error": "'ResultsLogger' object has no attribute 'log_final_results'",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "error": "'ResultsLogger' object has no attribute 'log_final_results'",
+    "success": false
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "error": "'ResultsLogger' object has no attribute 'log_final_results'",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "error": "'ResultsLogger' object has no attribute 'log_final_results'",
+    "success": false
+  }
+]

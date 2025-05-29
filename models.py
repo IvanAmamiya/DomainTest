@@ -38,6 +38,13 @@ class SelfAttentionModule(nn.Module):
         
         # 计算注意力权重
         attention = torch.bmm(query, key)
+        
+        # 添加缩放以稳定Softmax
+        # d_k 是 query/key 向量的维度
+        d_k = query.size(-1) 
+        if d_k > 0: # 避免除以零 (尽管 in_channels // reduction 应该总是 > 0)
+            attention = attention / (d_k ** 0.5)
+            
         attention = self.softmax(attention)
         
         # 应用注意力权重

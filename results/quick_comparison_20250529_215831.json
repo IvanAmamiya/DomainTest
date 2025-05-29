@@ -1,0 +1,30 @@
+{
+  "resnet18": {
+    "model_name": "ResNet18",
+    "model_info": {
+      "total_parameters": 11181642,
+      "trainable_parameters": 11181642,
+      "architecture": "RESNET18",
+      "input_channels": 3,
+      "num_classes": 10
+    },
+    "creation_time": 2.9050912857055664,
+    "test_accuracy": 0.075,
+    "inference_time": 2.155911922454834,
+    "success": true
+  },
+  "selfattentionresnet18": {
+    "model_name": "Self-Attention ResNet18",
+    "model_info": {
+      "total_parameters": 11967166,
+      "trainable_parameters": 11967166,
+      "architecture": "Self-Attention ResNet18",
+      "input_channels": 3,
+      "num_classes": 10
+    },
+    "creation_time": 0.27646565437316895,
+    "test_accuracy": 0.015625,
+    "inference_time": 2.123749256134033,
+    "success": true
+  }
+}

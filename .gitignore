@@ -32,7 +32,7 @@ env/
 # PyTorch models (large files)
 # Model files are often large and should be ignored if not distributing them.
 # Specific model paths from your scripts:
-# - results/comparison_*/best_*.pth (Covered by results/)
+# - results/comparison_*/best_*.pth 
 # - models/best_model.pth (If you use this path)
 # General rules:
 *.pth
@@ -44,7 +44,6 @@ DomainBed/
 data/
 
 # Experiment Results, Logs, and Outputs
-results/
 logs/
 
 # IDE configuration files

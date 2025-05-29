@@ -1,0 +1,164 @@
+[
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "test_accuracy": 0.16216679523442187,
+    "training_time": 26.180071592330933,
+    "model_info": {
+      "total_parameters": 11174402,
+      "trainable_parameters": 11174402,
+      "architecture": "RESNET18",
+      "input_channels": 2,
+      "input_size": 28,
+      "num_classes": 2
+    },
+    "train_history": {
+      "loss": [
+        3.302019987255335,
+        1.0664655375091925
+      ],
+      "accuracy": [
+        0.506042943470621,
+        0.5187716967385249
+      ]
+    },
+    "model_path": "results/comparison_20250529_233800/best_resnet18_ColoredMNIST_env0.pth",
+    "success": true
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "test_accuracy": 0.492243078769178,
+    "training_time": 30.21860647201538,
+    "model_info": {
+      "total_parameters": 11959926,
+      "trainable_parameters": 11959926,
+      "architecture": "Self-Attention ResNet18",
+      "input_channels": 2,
+      "input_size": 28,
+      "num_classes": 2
+    },
+    "train_history": {
+      "loss": [
+        NaN,
+        NaN
+      ],
+      "accuracy": [
+        0.49984999785711226,
+        0.49474992499892856
+      ]
+    },
+    "model_path": "results/comparison_20250529_233800/best_selfattentionresnet18_ColoredMNIST_env0.pth",
+    "success": true
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "test_accuracy": 0.7452535036214804,
+    "training_time": 25.994508981704712,
+    "model_info": {
+      "total_parameters": 11174402,
+      "trainable_parameters": 11174402,
+      "architecture": "RESNET18",
+      "input_channels": 2,
+      "input_size": 28,
+      "num_classes": 2
+    },
+    "train_history": {
+      "loss": [
+        2.4998665435806564,
+        1.002371727772381
+      ],
+      "accuracy": [
+        0.4973964471682345,
+        0.5095035035464033
+      ]
+    },
+    "model_path": "results/comparison_20250529_233800/best_resnet18_ColoredMNIST_env1.pth",
+    "success": true
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "test_accuracy": 0.49436420520293145,
+    "training_time": 32.16046977043152,
+    "model_info": {
+      "total_parameters": 11959926,
+      "trainable_parameters": 11959926,
+      "architecture": "Self-Attention ResNet18",
+      "input_channels": 2,
+      "input_size": 28,
+      "num_classes": 2
+    },
+    "train_history": {
+      "loss": [
+        NaN,
+        NaN
+      ],
+      "accuracy": [
+        0.4924893393618617,
+        0.48959650288212225
+      ]
+    },
+    "model_path": "results/comparison_20250529_233800/best_selfattentionresnet18_ColoredMNIST_env1.pth",
+    "success": true
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "test_accuracy": 0.11138730553293619,
+    "training_time": 26.27852964401245,
+    "model_info": {
+      "total_parameters": 11174402,
+      "trainable_parameters": 11174402,
+      "architecture": "RESNET18",
+      "input_channels": 2,
+      "input_size": 28,
+      "num_classes": 2
+    },
+    "train_history": {
+      "loss": [
+        1.5364466204267482,
+        0.6931751459513021
+      ],
+      "accuracy": [
+        0.8018942721837701,
+        0.844236826879808
+      ]
+    },
+    "model_path": "results/comparison_20250529_233800/best_resnet18_ColoredMNIST_env2.pth",
+    "success": true
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "test_accuracy": 0.5000214288775554,
+    "training_time": 32.235780477523804,
+    "model_info": {
+      "total_parameters": 11959926,
+      "trainable_parameters": 11959926,
+      "architecture": "Self-Attention ResNet18",
+      "input_channels": 2,
+      "input_size": 28,
+      "num_classes": 2
+    },
+    "train_history": {
+      "loss": [
+        NaN,
+        NaN
+      ],
+      "accuracy": [
+        0.5189105792101485,
+        0.4923179120149142
+      ]
+    },
+    "model_path": "results/comparison_20250529_233800/best_selfattentionresnet18_ColoredMNIST_env2.pth",
+    "success": true
+  }
+]

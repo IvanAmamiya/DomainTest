@@ -1,0 +1,100 @@
+{
+  "timestamp": "20250529_222557",
+  "experiment_data": {
+    "timestamp": "20250529_222557",
+    "experiment_name": "resnet_domain_experiment",
+    "dataset_name": "ColoredMNIST",
+    "test_env": 0,
+    "input_shape": "(2, 28, 28)",
+    "num_classes": 2,
+    "num_environments": 3,
+    "model_architecture": "RESNET18",
+    "total_parameters": 11174402,
+    "trainable_parameters": 11174402,
+    "pretrained": true,
+    "dropout_rate": 0.0,
+    "epochs": 1,
+    "batch_size": 128,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "final_train_acc": 0.6970599579994,
+    "final_test_acc": 0.7234936144681581,
+    "best_test_acc": 0.7234936144681581,
+    "final_train_loss": 0.6033112382302519,
+    "final_test_loss": 0.6192627311404285,
+    "total_training_time": 14.131171941757202,
+    "avg_epoch_time": 14.131171941757202,
+    "device": "cuda"
+  },
+  "config": {
+    "dataset": {
+      "name": "ColoredMNIST",
+      "data_dir": "./DomainBed/domainbed/data/",
+      "test_env": 0
+    },
+    "model": {
+      "type": "resnet18",
+      "pretrained": true,
+      "input_channels": null
+    },
+    "training": {
+      "epochs": 1,
+      "batch_size": 128,
+      "learning_rate": 0.0001,
+      "weight_decay": 0.0001,
+      "step_size": 30,
+      "gamma": 0.1
+    },
+    "experiment": {
+      "name": "resnet_domain_experiment",
+      "device": "cuda",
+      "num_workers": 4,
+      "pin_memory": true,
+      "seed": 42
+    },
+    "output": {
+      "save_model": true,
+      "model_path": "./models/",
+      "results_path": "./results/",
+      "log_path": "./logs/",
+      "plot_results": true
+    },
+    "batch_experiments": {
+      "enabled": true,
+      "datasets": [
+        "ColoredMNIST"
+      ],
+      "test_envs": [
+        0,
+        1
+      ],
+      "learning_rates": [
+        0.0001,
+        0.0005
+      ],
+      "batch_sizes": [
+        16,
+        32
+      ]
+    }
+  },
+  "train_history": {
+    "loss": [
+      0.6033112382302519
+    ],
+    "accuracy": [
+      0.6970599579994
+    ]
+  },
+  "test_history": {
+    "loss": [
+      0.6192627311404285
+    ],
+    "accuracy": [
+      0.7234936144681581
+    ],
+    "test_env_0_accuracy": [
+      0.7234936144681581
+    ]
+  }
+}

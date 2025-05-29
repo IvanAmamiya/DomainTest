@@ -226,24 +226,25 @@ class ComparisonExperiment:
             json.dump(all_results, f, indent=2, ensure_ascii=False)
         
         # 生成分析报告
-        self.generate_analysis_report(all_results)
+        # Pass the raw all_results to generate_analysis_report for epoch-level data access
+        self.generate_analysis_report(all_results) 
         
         return all_results
     
-    def generate_analysis_report(self, results):
+    def generate_analysis_report(self, all_results_raw): # Renamed parameter to reflect it's raw data
         """生成分析报告"""
         print(f"\n{'='*80}")
         print("生成分析报告...")
         print(f"{'='*80}")
         
         # 过滤成功的实验
-        successful_results = [r for r in results if r.get('success', False)]
+        successful_results = [r for r in all_results_raw if r.get('success', False)]
         
         if not successful_results:
             print("没有成功的实验结果")
             return
         
-        # 创建DataFrame
+        # 创建DataFrame for summary statistics (as before)
         df_data = []
         for result in successful_results:
             df_data.append({
@@ -251,10 +252,10 @@ class ComparisonExperiment:
                 'Dataset': result['dataset'],
                 'Test_Env': result['test_env'],
                 'Test_Accuracy': result['test_accuracy'],
-                'Final_Train_Accuracy': result['train_history']['accuracy'][-1] if result['train_history'] and result['train_history']['accuracy'] else None,
+                'Final_Train_Accuracy': result['train_history']['accuracy'][-1] if result.get('train_history') and result['train_history'].get('accuracy') else None,
                 'Training_Time': result['training_time'],
-                'Total_Parameters': result['model_info']['total_parameters'],
-                'Architecture': result['model_info']['architecture']
+                'Total_Parameters': result['model_info']['total_parameters'] if result.get('model_info') else None,
+                'Architecture': result['model_info']['architecture'] if result.get('model_info') else None
             })
         
         df = pd.DataFrame(df_data)
@@ -271,8 +272,8 @@ class ComparisonExperiment:
         with open(summary_file, 'w', encoding='utf-8') as f:
             json.dump(summary, f, indent=2, ensure_ascii=False)
         
-        # 生成可视化图表
-        self.generate_comparison_plots(df)
+        # 生成可视化图表, pass both the summary DataFrame and the raw results for epoch data
+        self.generate_comparison_plots(df, all_results_raw) # Pass raw results here
         
         # 打印摘要
         self.print_summary(summary)
@@ -314,47 +315,56 @@ class ComparisonExperiment:
         
         return summary
     
-    def generate_comparison_plots(self, df):
+    def generate_comparison_plots(self, df, all_results_raw):
         """生成对比图表"""
         plt.style.use('default')
-        # 尝试增加字体大小，使其在中文环境下更清晰
-        plt.rcParams.update({'font.size': 10}) # 可以根据需要调整大小
-        # 如果有中文显示问题，可能需要指定支持中文的字体
-        # plt.rcParams['font.sans-serif'] = ['SimHei']  # 例如，使用黑体
-        # plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+        plt.rcParams.update({'font.size': 10})
 
-        fig, axes = plt.subplots(2, 2, figsize=(18, 14)) # 增加了图像尺寸
+        # 从原始结果中提取每个epoch的训练和测试历史
+        epoch_data = []
+        for res in all_results_raw:
+            if res.get('success', False) and 'train_history' in res and 'test_history' in res:
+                model_type = res['model_type']
+                test_env = res['test_env']
+                train_losses = res['train_history'].get('loss', [])
+                train_accs = res['train_history'].get('accuracy', [])
+                test_losses = res.get('test_history', {}).get('loss', [])
+                test_accs = res.get('test_history', {}).get('accuracy', [])
+                max_epochs = max(len(train_losses), len(train_accs), len(test_losses), len(test_accs))
+                
+                for epoch in range(max_epochs):
+                    epoch_data.append({
+                        'Model': model_type,
+                        'Test_Env': test_env,
+                        'Epoch': epoch + 1,
+                        'Train_Loss': train_losses[epoch] if epoch < len(train_losses) else None,
+                        'Train_Accuracy': train_accs[epoch] if epoch < len(train_accs) else None,
+                        'Test_Loss': test_losses[epoch] if epoch < len(test_losses) else None,
+                        'Test_Accuracy_Epoch': test_accs[epoch] if epoch < len(test_accs) else None
+                    })
         
-        # 1. 准确率对比 (修改为按测试环境对比，展示泛化能力)
+        epoch_df = pd.DataFrame(epoch_data)
+
+        fig, axes = plt.subplots(2, 2, figsize=(20, 16))
+        
+        # 1. 模型准确率 vs 测试环境 (泛化能力)
         ax1 = axes[0, 0]
         models = sorted(df['Model'].unique())
-        
-        # 假设对比主要针对单个数据集内的不同测试环境
-        # 如果有多个数据集，此图可能需要调整或针对特定数据集
         dataset_name_title = df['Dataset'].unique()[0] if len(df['Dataset'].unique()) == 1 else "Multiple Datasets"
-        
-        # 获取当前DataFrame中实际存在的测试环境并排序
-        # 这很重要，因为并非所有模型/数据集组合都必然有所有理论上的test_env
         active_test_envs = sorted(df['Test_Env'].unique())
-        
         x = np.arange(len(active_test_envs))
         num_models = len(models)
-        
-        # 调整条形图宽度和间距的逻辑，使其更通用
         if num_models > 0:
-            total_width_for_group = 0.8 # 一个测试环境组的总宽度
+            total_width_for_group = 0.8
             bar_width = total_width_for_group / num_models
         else:
-            bar_width = 0.8 # 默认宽度
+            bar_width = 0.8
 
         for i, model in enumerate(models):
             accuracies = []
             for env_val in active_test_envs:
-                # 获取该模型在该特定测试环境下的平均测试准确率
                 acc = df[(df['Model'] == model) & (df['Test_Env'] == env_val)]['Test_Accuracy'].mean()
-                accuracies.append(acc if not pd.isna(acc) else 0) # pd.isna() 更稳健
-            
-            # 计算每个模型条形的偏移量
+                accuracies.append(acc if not pd.isna(acc) else 0)
             offset = (i - (num_models - 1) / 2) * bar_width
             ax1.bar(x + offset, accuracies, bar_width, label=model, alpha=0.8)
         
@@ -362,99 +372,107 @@ class ComparisonExperiment:
         ax1.set_ylabel('平均测试准确率 (Average Test Accuracy)')
         ax1.set_title(f'模型在不同测试环境下的准确率 ({dataset_name_title})')
         ax1.set_xticks(x)
-        ax1.set_xticklabels([f"环境 {env}" for env in active_test_envs]) # 使用中文标签
+        ax1.set_xticklabels([f"环境 {env}" for env in active_test_envs])
         ax1.legend(title="模型")
         ax1.grid(True, linestyle='--', alpha=0.7)
-        # Y轴范围可以根据实际数据调整，例如0到1
-        ax1.set_ylim(0, 1.05) 
+        ax1.set_ylim(0, 1.05)
         for p in ax1.patches:
             ax1.annotate(f"{p.get_height():.3f}", 
                            (p.get_x() + p.get_width() / 2., p.get_height()), 
                            ha='center', va='center', xytext=(0, 5), 
                            textcoords='offset points', fontsize=8)
 
-        # 2. 训练时间对比
+        # 2. 准确率和损失曲线 (每个模型，跨 Epochs)
         ax2 = axes[0, 1]
-        # 此部分逻辑保持不变，但同样可以考虑使用 active_test_envs 或按数据集的平均时间
-        # 为了简化，我们这里保持原有按数据集的平均时间，如果只有一个数据集，则只有一个x点
-        datasets_for_time_plot = sorted(df['Dataset'].unique())
-        x_time = np.arange(len(datasets_for_time_plot))
+        ax2_twin = None # Initialize ax2_twin
 
-        if num_models > 0:
-             # total_width_for_group_time = 0.8
-             bar_width_time = total_width_for_group / num_models # 使用与上图一致的计算方式
-        else:
-            bar_width_time = 0.8
-
-        for i, model in enumerate(models):
-            times = [df[(df['Model'] == model) & (df['Dataset'] == dataset)]['Training_Time'].mean() 
-                    for dataset in datasets_for_time_plot]
-            times = [t if not pd.isna(t) else 0 for t in times]
-
-            offset_time = (i - (num_models - 1) / 2) * bar_width_time
-            ax2.bar(x_time + offset_time, times, bar_width_time, label=model, alpha=0.8)
+        if not epoch_df.empty:
+            # Plot accuracies on ax2
+            for model_type in epoch_df['Model'].unique():
+                model_epoch_df = epoch_df[epoch_df['Model'] == model_type]
+                avg_epoch_df = model_epoch_df.groupby('Epoch').mean().reset_index()
+                ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Accuracy'], marker='o', linestyle='-', label=f'{model_type} Train Acc')
+                ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Accuracy_Epoch'], marker='x', linestyle='--', label=f'{model_type} Test Acc (Epoch Avg)')
+            
+            ax2_twin = ax2.twinx() # Create twin axis for loss
+            # Plot losses on ax2_twin
+            for model_type in epoch_df['Model'].unique():
+                model_epoch_df = epoch_df[epoch_df['Model'] == model_type]
+                avg_epoch_df = model_epoch_df.groupby('Epoch').mean().reset_index()
+                ax2_twin.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Loss'], marker='s', linestyle=':', alpha=0.7, label=f'{model_type} Train Loss')
+                if 'Test_Loss' in avg_epoch_df.columns and not avg_epoch_df['Test_Loss'].isnull().all():
+                     ax2_twin.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Loss'], marker='^', linestyle='-.', alpha=0.7, label=f'{model_type} Test Loss (Epoch Avg)')
         
-        ax2.set_xlabel('数据集 (Dataset)')
-        ax2.set_ylabel('平均训练时间 (秒) (Avg Training Time (s))')
-        ax2.set_title('模型训练时间对比')
-        ax2.set_xticks(x_time)
-        ax2.set_xticklabels(datasets_for_time_plot)
-        ax2.legend(title="模型")
+        # Common settings for ax2 (accuracy axis)
+        ax2.set_xlabel('训练轮次 (Epoch)')
+        ax2.set_ylabel('准确率 (Accuracy)')
+        ax2.set_title('模型准确率和损失变化趋势')
         ax2.grid(True, linestyle='--', alpha=0.7)
-        for p in ax2.patches:
-            ax2.annotate(f"{p.get_height():.1f}s", 
-                           (p.get_x() + p.get_width() / 2., p.get_height()), 
-                           ha='center', va='center', xytext=(0, 5), 
-                           textcoords='offset points', fontsize=8)
-        
-        # 3. 参数数量对比
-        ax3 = axes[1, 0]
-        param_counts = [df[df['Model'] == model]['Total_Parameters'].iloc[0] for model in models]
-        param_counts = [pc if not pd.isna(pc) else 0 for pc in param_counts]
+        ax2.set_ylim(0, 1.05)
 
-        colors = plt.cm.Set2(np.linspace(0, 1, len(models))) # 使用不同的颜色集
-        bars = ax3.bar(models, param_counts, color=colors, alpha=0.8, width=0.5) # 调整条形宽度
-        ax3.set_ylabel('总参数量 (Total Parameters)')
-        ax3.set_title('模型参数数量对比')
-        ax3.grid(True, linestyle='--', alpha=0.7)
-        ax3.ticklabel_format(style='sci', axis='y', scilimits=(0,0)) # Y轴使用科学计数法
+        if ax2_twin: # If epoch_df was not empty and ax2_twin was created
+            ax2_twin.set_ylabel('损失 (Loss)')
+            
+            lines, labels = ax2.get_legend_handles_labels()
+            lines2, labels2 = ax2_twin.get_legend_handles_labels()
+            ax2.legend(lines + lines2, labels + labels2, loc='best')
+            
+            # Original ylim logic for ax2_twin, now correctly guarded
+            if ('Train_Loss' in epoch_df.columns and epoch_df['Train_Loss'].notna().any()) or \
+               ('Test_Loss' in epoch_df.columns and epoch_df['Test_Loss'].notna().any()):
+                min_loss = min(epoch_df['Train_Loss'].min() if 'Train_Loss' in epoch_df and epoch_df['Train_Loss'].notna().any() else 0,
+                               epoch_df['Test_Loss'].min() if 'Test_Loss' in epoch_df and epoch_df['Test_Loss'].notna().any() else 0)
+                max_loss = max(epoch_df['Train_Loss'].max() if 'Train_Loss' in epoch_df and epoch_df['Train_Loss'].notna().any() else 0,
+                               epoch_df['Test_Loss'].max() if 'Test_Loss' in epoch_df and epoch_df['Test_Loss'].notna().any() else 0)
+                
+                if pd.notna(min_loss) and pd.notna(max_loss) and max_loss > min_loss:
+                     ax2_twin.set_ylim(max(0, min_loss - 0.1 * (max_loss - min_loss)), max_loss + 0.1 * (max_loss - min_loss))
+                elif pd.notna(max_loss):
+                     ax2_twin.set_ylim(0, max_loss * 1.1 if max_loss > 0 else 1.0)
+                else:
+                     ax2_twin.set_ylim(0, 1.0)
+            else: # No valid loss data in epoch_df for ylim calculation
+                ax2_twin.set_ylim(0, 1.0)
+        else: # ax2_twin was not created (epoch_df was empty)
+            ax2.text(0.5, 0.5, "无 Epoch 数据用于绘制曲线", horizontalalignment='center', verticalalignment='center', transform=ax2.transAxes)
+            handles, labels = ax2.get_legend_handles_labels() 
+            if handles: 
+                ax2.legend(loc='best')
 
-        for bar in bars:
-            yval = bar.get_height()
-            ax3.text(bar.get_x() + bar.get_width()/2.0, yval, 
-                     f'{int(yval):,}', 
-                     va='bottom', ha='center', fontsize=8) # 在条形图顶部显示数值
-        
-        # 4. 准确率分布箱线图 (展示泛化稳定性的一个方面)
-        ax4 = axes[1, 1]
+        # 3. 准确率分布箱线图 (保持不变)
+        ax3 = axes[1, 0] # Changed from axes[1,1] to axes[1,0] to make it the 3rd plot
         data_for_box = []
         valid_models_for_box = []
+        colors = plt.cm.Set2(np.linspace(0, 1, len(models)))
         for model in models:
-            # 收集该模型在所有测试环境下的准确率数据点
             accuracies_model_all_envs = df[df['Model'] == model]['Test_Accuracy'].dropna().values
             if len(accuracies_model_all_envs) > 0:
                 data_for_box.append(accuracies_model_all_envs)
                 valid_models_for_box.append(model)
         
-        if data_for_box: # 仅当有数据时绘制
-            box_plot = ax4.boxplot(data_for_box, labels=valid_models_for_box, patch_artist=True, widths=0.5)
-            
-            for patch, color in zip(box_plot['boxes'], colors[:len(valid_models_for_box)]): # 使用与参数图一致的颜色
+        if data_for_box:
+            box_plot = ax3.boxplot(data_for_box, labels=valid_models_for_box, patch_artist=True, widths=0.5)
+            for patch, color in zip(box_plot['boxes'], colors[:len(valid_models_for_box)]):
                 patch.set_facecolor(color)
                 patch.set_alpha(0.8)
-            
-            ax4.set_ylabel('测试准确率 (Test Accuracy)')
-            ax4.set_title('模型测试准确率分布 (跨不同测试环境)')
-            ax4.grid(True, linestyle='--', alpha=0.7)
-            ax4.set_ylim(0, 1.05)
+            ax3.set_ylabel('测试准确率 (Test Accuracy)')
+            ax3.set_title('模型测试准确率分布 (跨不同测试环境)')
+            ax3.grid(True, linestyle='--', alpha=0.7)
+            ax3.set_ylim(0, 1.05)
         else:
-            ax4.text(0.5, 0.5, "无数据显示", horizontalalignment='center', verticalalignment='center', transform=ax4.transAxes)
+            ax3.text(0.5, 0.5, "无数据显示", horizontalalignment='center', verticalalignment='center', transform=ax3.transAxes)
 
+        # 4. Remove the 'Total Parameters' plot or replace it if needed.
+        # For now, let's remove it by not plotting to axes[1,1]
+        # If you want to keep it, it would be axes[1,1] and you'd use the old ax3 code.
+        # To remove, we can make the 4th subplot invisible or clear it if something was drawn by mistake.
+        if len(axes.ravel()) > 3 : # Check if the 4th subplot exists
+            axes[1, 1].clear() # Clear it
+            axes[1, 1].set_visible(False) # Make it invisible
         
-        plt.tight_layout(rect=[0, 0, 1, 0.96]) # 调整布局防止标题重叠
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
         fig.suptitle(f'模型对比实验综合图表 ({dataset_name_title})', fontsize=16, y=0.99)
         
-        # 保存图表
         plot_file = self.results_dir / "comparison_plots.png"
         plt.savefig(plot_file, dpi=300, bbox_inches='tight')
         plt.close()

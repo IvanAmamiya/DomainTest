@@ -1,0 +1,2 @@
+timestamp,epoch,train_loss,train_accuracy,test_loss,test_accuracy,test_env_0_accuracy
+20250529_225900,1,,0.49531789058649583,,0.49547850683581196,0.49547850683581196

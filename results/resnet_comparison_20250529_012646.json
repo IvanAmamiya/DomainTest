@@ -1,0 +1,28 @@
+{
+  "resnet18": {
+    "test_accuracy": 0.08,
+    "training_time": 6.055243253707886,
+    "model_info": {
+      "total_parameters": 11181642,
+      "trainable_parameters": 11181642,
+      "input_channels": 3,
+      "num_classes": 10,
+      "architecture": "ResNet18"
+    },
+    "final_train_acc": 0.9628571428571429,
+    "final_val_acc": 0.14
+  },
+  "se_resnet18": {
+    "test_accuracy": 0.08,
+    "training_time": 4.0899224281311035,
+    "model_info": {
+      "total_parameters": 11268682,
+      "trainable_parameters": 11268682,
+      "input_channels": 3,
+      "num_classes": 10,
+      "architecture": "SE-ResNet18"
+    },
+    "final_train_acc": 0.7971428571428572,
+    "final_val_acc": 0.13
+  }
+}

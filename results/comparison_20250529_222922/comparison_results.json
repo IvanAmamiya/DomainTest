@@ -1,0 +1,44 @@
+[
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "error": "DomainGeneralizationTrainer.__init__() missing 2 required positional arguments: 'test_loaders' and 'config'",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "error": "DomainGeneralizationTrainer.__init__() missing 2 required positional arguments: 'test_loaders' and 'config'",
+    "success": false
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "error": "DomainGeneralizationTrainer.__init__() missing 2 required positional arguments: 'test_loaders' and 'config'",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "error": "DomainGeneralizationTrainer.__init__() missing 2 required positional arguments: 'test_loaders' and 'config'",
+    "success": false
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "error": "DomainGeneralizationTrainer.__init__() missing 2 required positional arguments: 'test_loaders' and 'config'",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "error": "DomainGeneralizationTrainer.__init__() missing 2 required positional arguments: 'test_loaders' and 'config'",
+    "success": false
+  }
+]

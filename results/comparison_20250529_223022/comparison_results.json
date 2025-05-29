@@ -1,0 +1,44 @@
+[
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "error": "DomainGeneralizationTrainer.train() takes 2 positional arguments but 5 were given",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 0,
+    "error": "DomainGeneralizationTrainer.train() takes 2 positional arguments but 5 were given",
+    "success": false
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "error": "DomainGeneralizationTrainer.train() takes 2 positional arguments but 5 were given",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 1,
+    "error": "DomainGeneralizationTrainer.train() takes 2 positional arguments but 5 were given",
+    "success": false
+  },
+  {
+    "model_type": "resnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "error": "DomainGeneralizationTrainer.train() takes 2 positional arguments but 5 were given",
+    "success": false
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "dataset": "ColoredMNIST",
+    "test_env": 2,
+    "error": "DomainGeneralizationTrainer.train() takes 2 positional arguments but 5 were given",
+    "success": false
+  }
+]
