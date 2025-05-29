@@ -1,4 +1,4 @@
-# DomainBed + VGG-16 实验配置文件
+# DomainBed + ResNet 实验配置文件
 
 # 数据集配置
 dataset:
@@ -8,24 +8,25 @@ dataset:
   
 # 模型配置
 model:
-  architecture: "vgg16"
+  type: "resnet18"  # resnet18, resnet34, resnet50
   pretrained: true
-  dropout_rate: 0.5
   input_channels: null  # null表示自动从数据集获取
-  input_size: null      # null表示自动从数据集获取
+  dropout_rate: 0.0 # 统一关闭Dropout
 
 # 训练配置
 training:
   epochs: 1
-  batch_size: 32
-  learning_rate: 0.0001
+  batch_size: 256 # 修改为 128
+  learning_rate: 0.1 # 修改为 0.1
+  optimizer_type: "SGD"  # 指定优化器类型
+  momentum: 0.9          # SGD的动量参数
   weight_decay: 0.0001
   step_size: 30
   gamma: 0.1
   
 # 实验配置
 experiment:
-  name: "vgg16_domain_experiment"
+  name: "resnet_domain_experiment"
   device: "auto"  # auto, cuda, cpu
   num_workers: 4
   pin_memory: true

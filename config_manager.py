@@ -115,7 +115,7 @@ def validate_config(config):
 
 def get_parser():
     """获取命令行参数解析器"""
-    parser = argparse.ArgumentParser(description='VGG-16 领域泛化实验')
+    parser = argparse.ArgumentParser(description='ResNet 领域泛化实验')
     
     # 基本参数
     parser.add_argument('--config', type=str, default='config.yaml',

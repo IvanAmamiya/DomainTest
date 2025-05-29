@@ -50,12 +50,11 @@ def run_experiment(config, test_env):
     
     # 构建命令
     cmd = [
-        'python', 'vgg16_domain_test.py',
+        'python', 'main.py',
         '--dataset', dataset,
         '--test_env', str(test_env),
         '--epochs', str(epochs),
-        '--batch_size', str(batch_size),
-        '--pretrained'
+        '--batch_size', str(batch_size)
     ]
     
     # 记录开始时间
@@ -74,12 +73,12 @@ def run_experiment(config, test_env):
         duration = end_time - start_time
         
         # 移动结果文件到实验目录
-        if os.path.exists('best_vgg16_domain_model.pth'):
-            os.rename('best_vgg16_domain_model.pth', 
+        if os.path.exists('best_resnet_domain_model.pth'):
+            os.rename('best_resnet_domain_model.pth', 
                      f'{exp_dir}/best_model.pth')
         
-        if os.path.exists('vgg16_domain_results.json'):
-            os.rename('vgg16_domain_results.json', 
+        if os.path.exists('domain_results.json'):
+            os.rename('domain_results.json', 
                      f'{exp_dir}/results.json')
         
         # 保存实验日志

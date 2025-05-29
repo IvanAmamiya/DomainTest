@@ -1,145 +1,200 @@
 #!/usr/bin/env python3
 """
-VGG-16 模型定义模块
+模型定义模块
+目前支持ResNet系列模型和Self-Attention ResNet模型
 """
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.models as models
 
 
-class VGG16DomainModel(nn.Module):
-    """基于VGG-16的领域泛化模型，适配不同尺寸图像"""
-    
-    def __init__(self, num_classes, input_channels=3, input_size=224, pretrained=True, dropout_rate=0.5):
-        super(VGG16DomainModel, self).__init__()
+class SelfAttentionModule(nn.Module):
+    """Self-Attention模块"""
+    def __init__(self, in_channels, reduction=8):
+        super(SelfAttentionModule, self).__init__()
+        self.in_channels = in_channels
+        self.reduction = reduction
         
-        self.input_size = input_size
-        self.num_classes = num_classes
-        self.input_channels = input_channels
+        # Query, Key, Value 投影
+        self.query_conv = nn.Conv2d(in_channels, in_channels // reduction, 1)
+        self.key_conv = nn.Conv2d(in_channels, in_channels // reduction, 1)
+        self.value_conv = nn.Conv2d(in_channels, in_channels, 1)
         
-        # 如果输入尺寸很小（如MNIST的28x28），我们需要调整架构
-        if input_size <= 32:
-            self._build_small_vgg(input_channels, num_classes, dropout_rate)
-        else:
-            self._build_standard_vgg(input_channels, num_classes, pretrained, dropout_rate)
-    
-    def _build_small_vgg(self, input_channels, num_classes, dropout_rate):
-        """构建适合小图像的VGG架构"""
-        self.features = nn.Sequential(
-            # 第一组
-            nn.Conv2d(input_channels, 64, kernel_size=3, padding=1),
-            nn.ReLU(True),
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            nn.ReLU(True),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 28x28 -> 14x14
-            
-            # 第二组
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.ReLU(True),
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.ReLU(True),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 14x14 -> 7x7
-            
-            # 第三组 - 不再池化，保持7x7
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.ReLU(True),
-            nn.Conv2d(256, 256, kernel_size=3, padding=1),
-            nn.ReLU(True),
-            
-            # 全局平均池化到固定尺寸
-            nn.AdaptiveAvgPool2d((7, 7))
-        )
+        # 输出投影
+        self.out_conv = nn.Conv2d(in_channels, in_channels, 1)
+        self.gamma = nn.Parameter(torch.zeros(1))
         
-        # 分类器
-        self.classifier = nn.Sequential(
-            nn.Linear(256 * 7 * 7, 1024),
-            nn.ReLU(True),
-            nn.Dropout(dropout_rate),
-            nn.Linear(1024, 512),
-            nn.ReLU(True),
-            nn.Dropout(dropout_rate),
-            nn.Linear(512, num_classes)
-        )
-    
-    def _build_standard_vgg(self, input_channels, num_classes, pretrained, dropout_rate):
-        """构建标准VGG-16架构"""
-        self.backbone = models.vgg16(pretrained=pretrained)
-        
-        # 如果输入通道数不是3，需要修改第一层
-        if input_channels != 3:
-            original_conv = self.backbone.features[0]
-            new_conv = nn.Conv2d(input_channels, 64, kernel_size=3, stride=1, padding=1)
-            
-            if pretrained and input_channels == 2:
-                with torch.no_grad():
-                    new_conv.weight[:, :2, :, :] = original_conv.weight[:, :2, :, :]
-                    new_conv.bias = original_conv.bias
-            
-            self.backbone.features[0] = new_conv
-        
-        self.features = self.backbone.features
-        
-        # 修改分类器部分
-        self.classifier = nn.Sequential(
-            nn.Linear(512 * 7 * 7, 4096),
-            nn.ReLU(True),
-            nn.Dropout(dropout_rate),
-            nn.Linear(4096, 4096),
-            nn.ReLU(True),
-            nn.Dropout(dropout_rate),
-            nn.Linear(4096, num_classes)
-        )
-    
+        self.softmax = nn.Softmax(dim=-1)
+
     def forward(self, x):
-        """前向传播"""
-        # 调整输入尺寸
-        x = self._resize_input(x)
+        batch_size, channels, height, width = x.size()
         
-        features = self.features(x)
-        features = features.view(features.size(0), -1)
-        return self.classifier(features)
-    
-    def get_features(self, x):
-        """提取特征向量，用于域对抗训练等高级方法"""
-        x = self._resize_input(x)
-        features = self.features(x)
-        return features.view(features.size(0), -1)
-    
-    def _resize_input(self, x):
-        """调整输入尺寸"""
-        if self.input_size <= 32 and x.size(-1) != 28:
-            x = torch.nn.functional.interpolate(x, size=(28, 28), mode='bilinear', align_corners=False)
-        elif self.input_size > 32 and x.size(-1) < 224:
-            x = torch.nn.functional.interpolate(x, size=(224, 224), mode='bilinear', align_corners=False)
+        # 生成 Query, Key, Value
+        query = self.query_conv(x).view(batch_size, -1, height * width).permute(0, 2, 1)
+        key = self.key_conv(x).view(batch_size, -1, height * width)
+        value = self.value_conv(x).view(batch_size, -1, height * width)
+        
+        # 计算注意力权重
+        attention = torch.bmm(query, key)
+        attention = self.softmax(attention)
+        
+        # 应用注意力权重
+        out = torch.bmm(value, attention.permute(0, 2, 1))
+        out = out.view(batch_size, channels, height, width)
+        
+        # 输出投影和残差连接
+        out = self.out_conv(out)
+        out = self.gamma * out + x
+        
+        return out
+
+
+class SelfAttentionResNet18(nn.Module):
+    """带有Self-Attention机制的ResNet18"""
+    def __init__(self, num_classes=10, input_channels=3, pretrained=True):
+        super(SelfAttentionResNet18, self).__init__()
+        
+        # 加载预训练的ResNet18
+        self.backbone = models.resnet18(pretrained=pretrained)
+        
+        # 调整输入通道数
+        if input_channels != 3:
+            original_conv = self.backbone.conv1
+            new_conv = nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+            
+            if pretrained and input_channels == 1:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(torch.mean(original_conv.weight, dim=1, keepdim=True))
+            elif pretrained and input_channels == 2:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(original_conv.weight[:, :2, :, :])
+            
+            self.backbone.conv1 = new_conv
+        
+        # 添加Self-Attention模块到不同层
+        self.attention1 = SelfAttentionModule(64)   # layer1 后
+        self.attention2 = SelfAttentionModule(128)  # layer2 后  
+        self.attention3 = SelfAttentionModule(256)  # layer3 后
+        self.attention4 = SelfAttentionModule(512)  # layer4 后
+        
+        # 替换分类器
+        self.backbone.fc = nn.Linear(self.backbone.fc.in_features, num_classes)
+        
+    def forward(self, x):
+        # 前向传播
+        x = self.backbone.conv1(x)
+        x = self.backbone.bn1(x)
+        x = self.backbone.relu(x)
+        x = self.backbone.maxpool(x)
+        
+        # Layer 1 + Attention
+        x = self.backbone.layer1(x)
+        x = self.attention1(x)
+        
+        # Layer 2 + Attention
+        x = self.backbone.layer2(x)
+        x = self.attention2(x)
+        
+        # Layer 3 + Attention
+        x = self.backbone.layer3(x)
+        x = self.attention3(x)
+        
+        # Layer 4 + Attention
+        x = self.backbone.layer4(x)
+        x = self.attention4(x)
+        
+        # 全局平均池化和分类器
+        x = self.backbone.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.backbone.fc(x)
+        
         return x
+
+
+def create_resnet_model(num_classes, input_channels=3, pretrained=True, model_type='resnet18'):
+    """创建ResNet模型"""
+    if model_type == 'resnet18':
+        model = models.resnet18(pretrained=pretrained)
+    elif model_type == 'resnet34':
+        model = models.resnet34(pretrained=pretrained)
+    elif model_type == 'resnet50':
+        model = models.resnet50(pretrained=pretrained)
+    else:
+        raise ValueError(f"不支持的模型类型: {model_type}")
     
-    def get_model_info(self):
-        """获取模型信息"""
-        total_params = sum(p.numel() for p in self.parameters())
-        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+    # 如果输入通道数不是3，需要修改第一层
+    if input_channels != 3:
+        original_conv = model.conv1
+        new_conv = nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
         
-        return {
-            'total_parameters': total_params,
-            'trainable_parameters': trainable_params,
-            'input_channels': self.input_channels,
-            'input_size': self.input_size,
-            'num_classes': self.num_classes,
-            'architecture': 'VGG16_Small' if self.input_size <= 32 else 'VGG16_Standard'
-        }
+        if pretrained and input_channels == 1:
+            # 对于单通道，使用预训练权重的平均值
+            with torch.no_grad():
+                new_conv.weight = nn.Parameter(torch.mean(original_conv.weight, dim=1, keepdim=True))
+        elif pretrained and input_channels == 2:
+            # 对于双通道，使用前两个通道
+            with torch.no_grad():
+                new_conv.weight = nn.Parameter(original_conv.weight[:, :2, :, :])
+        
+        model.conv1 = new_conv
+    
+    # 修改分类器
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
+    
+    return model
+
+
+def create_self_attention_resnet18(num_classes, input_channels=3, pretrained=True):
+    """创建Self-Attention ResNet18模型"""
+    return SelfAttentionResNet18(
+        num_classes=num_classes,
+        input_channels=input_channels,
+        pretrained=pretrained
+    )
 
 
 def create_model(config, num_classes, input_shape):
     """根据配置创建模型"""
-    input_channels = config['model']['input_channels'] or input_shape[0]
-    input_size = config['model']['input_size'] or max(input_shape[1], input_shape[2])
+    input_channels = config['model'].get('input_channels') or input_shape[0]
+    model_type = config['model'].get('type', 'resnet18')
+    pretrained = config['model'].get('pretrained', True)
     
-    model = VGG16DomainModel(
-        num_classes=num_classes,
-        input_channels=input_channels,
-        input_size=input_size,
-        pretrained=config['model']['pretrained'],
-        dropout_rate=config['model']['dropout_rate']
-    )
+    if model_type.startswith('resnet'):
+        model = create_resnet_model(
+            num_classes=num_classes,
+            input_channels=input_channels,
+            pretrained=pretrained,
+            model_type=model_type
+        )
+    elif model_type == 'selfattentionresnet18':
+        model = create_self_attention_resnet18(
+            num_classes=num_classes,
+            input_channels=input_channels,
+            pretrained=pretrained
+        )
+    else:
+        raise ValueError(f"不支持的模型类型: {model_type}")
     
     return model
+
+
+def get_model_info(model, model_type='resnet18'):
+    """获取模型信息"""
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    # 根据模型类型设置架构名称
+    if model_type == 'selfattentionresnet18':
+        architecture = 'Self-Attention ResNet18'
+    elif model_type.startswith('resnet'):
+        architecture = model_type.upper()
+    else:
+        architecture = model_type.upper()
+    
+    return {
+        'total_parameters': total_params,
+        'trainable_parameters': trainable_params,
+        'architecture': architecture
+    }

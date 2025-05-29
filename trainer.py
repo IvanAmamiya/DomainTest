@@ -34,11 +34,26 @@ class DomainGeneralizationTrainer:
         
     def _setup_optimizer(self):
         """设置优化器和调度器"""
-        self.optimizer = optim.Adam(
-            self.model.parameters(), 
-            lr=self.config['training']['learning_rate'],
-            weight_decay=self.config['training']['weight_decay']
-        )
+        optimizer_type = self.config['training'].get('optimizer_type', 'Adam').lower()
+        lr = self.config['training']['learning_rate']
+        weight_decay = self.config['training']['weight_decay']
+
+        if optimizer_type == "sgd":
+            momentum = self.config['training'].get('momentum', 0.9)
+            self.optimizer = optim.SGD(
+                self.model.parameters(),
+                lr=lr,
+                momentum=momentum,
+                weight_decay=weight_decay
+            )
+        elif optimizer_type == "adam":
+            self.optimizer = optim.Adam(
+                self.model.parameters(), 
+                lr=lr,
+                weight_decay=weight_decay
+            )
+        else:
+            raise ValueError(f"Unsupported optimizer type: {optimizer_type}")
         
         self.scheduler = optim.lr_scheduler.StepLR(
             self.optimizer, 
@@ -197,9 +212,15 @@ class DomainGeneralizationTrainer:
         os.makedirs(model_path, exist_ok=True)
         
         model_file = os.path.join(model_path, 'best_model.pth')
+        
+        # 获取模型信息
+        from models import get_model_info
+        model_type = self.config['model'].get('type', 'resnet18')
+        model_info = get_model_info(self.model, model_type)
+        
         torch.save({
             'model_state_dict': self.model.state_dict(),
-            'model_info': self.model.get_model_info(),
+            'model_info': model_info,
             'config': self.config,
             'test_accuracy': max(self.test_history['accuracy']) if self.test_history['accuracy'] else 0
         }, model_file)

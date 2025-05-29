@@ -30,25 +30,32 @@ env/
 .ipynb_checkpoints
 
 # PyTorch models (large files)
+# Model files are often large and should be ignored if not distributing them.
+# Specific model paths from your scripts:
+# - results/comparison_*/best_*.pth (Covered by results/)
+# - models/best_model.pth (If you use this path)
+# General rules:
 *.pth
-best_*.pth
+models/best_model.pth # If you save specific models here outside results/
 
 # Data files and nested repos
+# Assuming these are not meant to be committed to this specific repo
 DomainBed/
 data/
 
-# Results and logs (keep structure but ignore large result files)
-*.json
+# Experiment Results, Logs, and Outputs
+results/
 logs/
-*.log
 
-# IDE
+# IDE configuration files
 .vscode/
 .idea/
+
+# Editor temporary files
 *.swp
 *.swo
 
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
 

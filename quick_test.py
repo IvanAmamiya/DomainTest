@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-快速测试脚本 - VGG-16 + ColoredMNIST
+快速测试脚本 - ResNet + ColoredMNIST
 用于验证框架是否正常工作
 """
 
@@ -14,7 +14,7 @@ import os
 sys.path.append('./DomainBed')
 
 def quick_test():
-    print("=== VGG-16 + DomainBed 快速测试 ===")
+    print("=== ResNet + DomainBed 快速测试 ===")
     
     # 检查PyTorch和CUDA
     print(f"PyTorch版本: {torch.__version__}")
@@ -26,26 +26,18 @@ def quick_test():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"使用设备: {device}")
     
-    # 测试VGG-16模型创建
-    print("\n--- 测试VGG-16模型 ---")
+    # 测试ResNet-18模型创建
+    print("\n--- 测试ResNet-18模型 ---")
     try:
-        model = models.vgg16(pretrained=False)  # 先不下载预训练权重
-        print(f"VGG-16模型创建成功")
+        model = models.resnet18(pretrained=False)  # 先不下载预训练权重
+        print(f"ResNet-18模型创建成功")
         print(f"参数数量: {sum(p.numel() for p in model.parameters()):,}")
         
         # 修改分类器
-        model.classifier = nn.Sequential(
-            nn.Linear(512 * 7 * 7, 4096),
-            nn.ReLU(True),
-            nn.Dropout(0.5),
-            nn.Linear(4096, 1000),
-            nn.ReLU(True),
-            nn.Dropout(0.5),
-            nn.Linear(1000, 10)  # 10个类别用于MNIST
-        )
+        model.fc = nn.Linear(model.fc.in_features, 10)  # 10个类别用于MNIST
         
         model = model.to(device)
-        print("VGG-16模型移动到设备成功")
+        print("ResNet-18模型移动到设备成功")
         
         # 测试前向传播
         test_input = torch.randn(2, 3, 224, 224).to(device)
@@ -54,7 +46,7 @@ def quick_test():
         print(f"前向传播测试成功，输出形状: {output.shape}")
         
     except Exception as e:
-        print(f"VGG-16模型测试失败: {e}")
+        print(f"ResNet-18模型测试失败: {e}")
         return False
     
     # 测试DomainBed数据集导入
@@ -124,7 +116,7 @@ if __name__ == '__main__':
     success = quick_test()
     if success:
         print("\n使用以下命令开始训练:")
-        print("python3 vgg16_domain_test.py --dataset ColoredMNIST --test_env 0 --epochs 10")
-        print("python3 vgg16_domain_test.py --dataset TerraIncognita --test_env 0 --epochs 20")
+        print("python3 main.py --dataset ColoredMNIST --test_env 0 --epochs 10")
+        print("python3 main.py --dataset TerraIncognita --test_env 0 --epochs 20")
     else:
         print("\n测试失败，请检查环境配置")

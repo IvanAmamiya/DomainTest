@@ -49,7 +49,7 @@ class ResultsLogger:
             'total_parameters': model_info['total_parameters'],
             'trainable_parameters': model_info['trainable_parameters'],
             'pretrained': self.config['model']['pretrained'],
-            'dropout_rate': self.config['model']['dropout_rate'],
+            'dropout_rate': self.config['model'].get('dropout_rate', 0.0), # Use .get() for safer access
             
             # 训练配置
             'epochs': self.config['training']['epochs'],

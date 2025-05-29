@@ -1,6 +1,6 @@
-# DomainTest: VGG-16 域适应实验框架
+# DomainTest: ResNet 域适应实验框架
 
-一个用于在 DomainBed 数据集上测试 VGG-16 的简单实验框架。
+一个用于在 DomainBed 数据集上测试 ResNet 系列模型的实验框架。
 
 ## 快速开始
 
@@ -56,4 +56,4 @@ python main.py --dataset ColoredMNIST --test_env 0 --epochs 5 --batch_size 32
 
 ## 致谢
 
-本项目使用了 [DomainBed](https://github.com/facebookresearch/DomainBed) 的数据集。该框架实现了独立的 VGG-16 训练系统和实验管理工具。
+本项目使用了 [DomainBed](https://github.com/facebookresearch/DomainBed) 的数据集。该框架实现了独立的 ResNet 训练系统和实验管理工具。

@@ -33,7 +33,11 @@ def run_single_experiment(config):
         # 2. 创建模型
         print("正在创建模型...")
         model = create_model(config, dataset_info['num_classes'], dataset_info['input_shape'])
-        model_info = model.get_model_info()
+        
+        # 获取模型信息
+        from models import get_model_info
+        model_type = config['model'].get('type', 'resnet18')
+        model_info = get_model_info(model, model_type)
         
         print(f"模型架构: {model_info['architecture']}")
         print(f"总参数数量: {model_info['total_parameters']:,}")
