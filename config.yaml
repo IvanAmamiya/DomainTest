@@ -15,7 +15,7 @@ model:
 
 # 训练配置
 training:
-  epochs: 100
+  epochs: 300
   batch_size: 128 # 修改为 128
   learning_rate: 0.1 # 修改为 0.1
   optimizer_type: "SGD"  # 指定优化器类型

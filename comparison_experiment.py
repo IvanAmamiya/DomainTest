@@ -540,8 +540,8 @@ def main():
     # 创建实验管理器
     experiment = ComparisonExperiment()
     
-    # 修改配置以进行epoch为150的实验
-    experiment.config['training']['epochs'] = 150
+    # 修改配置以进行epoch为300的实验
+    experiment.config['training']['epochs'] = 300
     
     # 配置实验
     datasets = ['ColoredMNIST']  # 可以添加更多数据集
