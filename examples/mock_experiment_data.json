@@ -1,0 +1,68 @@
+[
+  {
+    "model_type": "resnet18",
+    "test_env": 0,
+    "test_accuracy": 0.7877894784125755,
+    "training_time": 177.2347139765763,
+    "model_info": {
+      "total_parameters": 11181642,
+      "architecture": "resnet18"
+    },
+    "success": true
+  },
+  {
+    "model_type": "resnet18",
+    "test_env": 1,
+    "test_accuracy": 0.7914687536814176,
+    "training_time": 175.3169325055333,
+    "model_info": {
+      "total_parameters": 11181642,
+      "architecture": "resnet18"
+    },
+    "success": true
+  },
+  {
+    "model_type": "resnet18",
+    "test_env": 2,
+    "test_accuracy": 0.7595711530566704,
+    "training_time": 195.34869458305818,
+    "model_info": {
+      "total_parameters": 11181642,
+      "architecture": "resnet18"
+    },
+    "success": true
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "test_env": 0,
+    "test_accuracy": 0.7923878066720336,
+    "training_time": 208.41455767968844,
+    "model_info": {
+      "total_parameters": 11967166,
+      "architecture": "selfattentionresnet18"
+    },
+    "success": true
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "test_env": 1,
+    "test_accuracy": 0.7251801342123807,
+    "training_time": 172.16799388355506,
+    "model_info": {
+      "total_parameters": 11967166,
+      "architecture": "selfattentionresnet18"
+    },
+    "success": true
+  },
+  {
+    "model_type": "selfattentionresnet18",
+    "test_env": 2,
+    "test_accuracy": 0.7037934454822665,
+    "training_time": 194.6792219916394,
+    "model_info": {
+      "total_parameters": 11967166,
+      "architecture": "selfattentionresnet18"
+    },
+    "success": true
+  }
+]

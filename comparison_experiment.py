@@ -537,7 +537,7 @@ def main():
     experiment = ComparisonExperiment()
     
     # 修改配置以进行epoch为300的实验
-    experiment.config['training']['epochs'] = 300 # 恢复为300个epoch进行完整训练
+    experiment.config['training']['epochs'] = 150 # 恢复为300个epoch进行完整训练
     experiment.config['model']['pretrained'] = False  # 使用未预训练的模型进行对比实验
     
     # 配置实验
