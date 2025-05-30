@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Automated Git Push Script
-Automatically commits and pushes changes every 30 minutes
+Automatically commits and pushes changes every 1-2 hours (random interval)
 """
 
 import subprocess
 import time
 import os
 import logging
+import random
 from datetime import datetime
 
 # 设置日志
@@ -74,9 +75,9 @@ def git_auto_push():
     return True
 
 def main():
-    """主函数 - 每30分钟运行一次git推送"""
+    """主函数 - 每1-2小时随机间隔运行一次git推送"""
     logging.info("Starting auto git push daemon")
-    logging.info("Will check for changes and push every 30 minutes")
+    logging.info("Will check for changes and push every 1-2 hours (random interval)")
     logging.info("Press Ctrl+C to stop")
     
     # 首次运行
@@ -84,8 +85,12 @@ def main():
     
     try:
         while True:
-            # 等待30分钟 (1800秒)
-            time.sleep(1800)
+            # 随机等待1-2小时 (3600-7200秒)
+            wait_time = random.randint(3600, 7200)  # 1小时到2小时
+            wait_hours = wait_time / 3600
+            logging.info(f"Waiting {wait_hours:.2f} hours until next push...")
+            
+            time.sleep(wait_time)
             git_auto_push()
             
     except KeyboardInterrupt:
