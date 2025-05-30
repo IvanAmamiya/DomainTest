@@ -384,76 +384,80 @@ class ComparisonExperiment:
                            ha='center', va='center', xytext=(0, 5), 
                            textcoords='offset points', fontsize=8)
 
-        # 2. 准确率和损失曲线 (每个模型，跨 Epochs)
+        # 2. 训练准确率曲线
         ax2 = axes[0, 1]
-        ax2_twin = None # Initialize ax2_twin
-
+        
         if not epoch_df.empty:
-            # Plot accuracies on ax2
+            # Plot training accuracies
             for model_type in epoch_df['Model'].unique():
                 model_epoch_df = epoch_df[epoch_df['Model'] == model_type]
-                # Only aggregate numeric columns
-                numeric_cols = ['Train_Loss', 'Train_Accuracy', 'Test_Loss', 'Test_Accuracy_Epoch']
+                numeric_cols = ['Train_Accuracy', 'Test_Accuracy_Epoch']
                 available_cols = [col for col in numeric_cols if col in model_epoch_df.columns]
                 avg_epoch_df = model_epoch_df.groupby('Epoch')[available_cols].mean().reset_index()
                 
                 if 'Train_Accuracy' in avg_epoch_df.columns:
-                    ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Accuracy'], marker='o', linestyle='-', label=f'{model_type} Train Acc')
+                    ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Accuracy'], 
+                            marker='o', linestyle='-', linewidth=2, 
+                            label=f'{model_type} Training Accuracy')
                 if 'Test_Accuracy_Epoch' in avg_epoch_df.columns:
-                    ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Accuracy_Epoch'], marker='x', linestyle='--', label=f'{model_type} Test Acc (Epoch Avg)')
-            
-            ax2_twin = ax2.twinx() # Create twin axis for loss
-            # Plot losses on ax2_twin
+                    ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Accuracy_Epoch'], 
+                            marker='x', linestyle='--', linewidth=2, alpha=0.8,
+                            label=f'{model_type} Test Accuracy')
+        
+        ax2.set_xlabel('训练轮次 (Epoch)')
+        ax2.set_ylabel('准确率 (Accuracy)')
+        ax2.set_title('模型准确率变化趋势')
+        ax2.grid(True, linestyle='--', alpha=0.7)
+        ax2.set_ylim(0, 1.05)
+        ax2.legend(loc='best')
+
+        # 3. 训练损失曲线
+        ax3 = axes[1, 0]
+        
+        if not epoch_df.empty:
+            # Plot training losses
             for model_type in epoch_df['Model'].unique():
                 model_epoch_df = epoch_df[epoch_df['Model'] == model_type]
-                # Only aggregate numeric columns
-                numeric_cols = ['Train_Loss', 'Train_Accuracy', 'Test_Loss', 'Test_Accuracy_Epoch']
+                numeric_cols = ['Train_Loss', 'Test_Loss']
                 available_cols = [col for col in numeric_cols if col in model_epoch_df.columns]
                 avg_epoch_df = model_epoch_df.groupby('Epoch')[available_cols].mean().reset_index()
                 
                 if 'Train_Loss' in avg_epoch_df.columns:
-                    ax2_twin.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Loss'], marker='s', linestyle=':', alpha=0.7, label=f'{model_type} Train Loss')
+                    ax3.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Loss'], 
+                            marker='s', linestyle='-', linewidth=2,
+                            label=f'{model_type} Training Loss')
                 if 'Test_Loss' in avg_epoch_df.columns and not avg_epoch_df['Test_Loss'].isnull().all():
-                     ax2_twin.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Loss'], marker='^', linestyle='-.', alpha=0.7, label=f'{model_type} Test Loss (Epoch Avg)')
+                    ax3.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Loss'], 
+                            marker='^', linestyle='--', linewidth=2, alpha=0.8,
+                            label=f'{model_type} Test Loss')
         
-        # Common settings for ax2 (accuracy axis)
-        ax2.set_xlabel('训练轮次 (Epoch)')
-        ax2.set_ylabel('准确率 (Accuracy)')
-        ax2.set_title('模型准确率和损失变化趋势')
-        ax2.grid(True, linestyle='--', alpha=0.7)
-        ax2.set_ylim(0, 1.05)
-
-        if ax2_twin: # If epoch_df was not empty and ax2_twin was created
-            ax2_twin.set_ylabel('损失 (Loss)')
+        ax3.set_xlabel('训练轮次 (Epoch)')
+        ax3.set_ylabel('损失 (Loss)')
+        ax3.set_title('模型损失变化趋势')
+        ax3.grid(True, linestyle='--', alpha=0.7)
+        ax3.legend(loc='best')
+        
+        # Set appropriate y-limits for loss plot
+        if not epoch_df.empty and (('Train_Loss' in epoch_df.columns and epoch_df['Train_Loss'].notna().any()) or 
+                                   ('Test_Loss' in epoch_df.columns and epoch_df['Test_Loss'].notna().any())):
+            min_loss = min(epoch_df['Train_Loss'].min() if 'Train_Loss' in epoch_df and epoch_df['Train_Loss'].notna().any() else float('inf'),
+                          epoch_df['Test_Loss'].min() if 'Test_Loss' in epoch_df and epoch_df['Test_Loss'].notna().any() else float('inf'))
+            max_loss = max(epoch_df['Train_Loss'].max() if 'Train_Loss' in epoch_df and epoch_df['Train_Loss'].notna().any() else 0,
+                          epoch_df['Test_Loss'].max() if 'Test_Loss' in epoch_df and epoch_df['Test_Loss'].notna().any() else 0)
             
-            lines, labels = ax2.get_legend_handles_labels()
-            lines2, labels2 = ax2_twin.get_legend_handles_labels()
-            ax2.legend(lines + lines2, labels + labels2, loc='best')
-            
-            # Original ylim logic for ax2_twin, now correctly guarded
-            if ('Train_Loss' in epoch_df.columns and epoch_df['Train_Loss'].notna().any()) or \
-               ('Test_Loss' in epoch_df.columns and epoch_df['Test_Loss'].notna().any()):
-                min_loss = min(epoch_df['Train_Loss'].min() if 'Train_Loss' in epoch_df and epoch_df['Train_Loss'].notna().any() else 0,
-                               epoch_df['Test_Loss'].min() if 'Test_Loss' in epoch_df and epoch_df['Test_Loss'].notna().any() else 0)
-                max_loss = max(epoch_df['Train_Loss'].max() if 'Train_Loss' in epoch_df and epoch_df['Train_Loss'].notna().any() else 0,
-                               epoch_df['Test_Loss'].max() if 'Test_Loss' in epoch_df and epoch_df['Test_Loss'].notna().any() else 0)
-                
-                if pd.notna(min_loss) and pd.notna(max_loss) and max_loss > min_loss:
-                     ax2_twin.set_ylim(max(0, min_loss - 0.1 * (max_loss - min_loss)), max_loss + 0.1 * (max_loss - min_loss))
-                elif pd.notna(max_loss):
-                     ax2_twin.set_ylim(0, max_loss * 1.1 if max_loss > 0 else 1.0)
-                else:
-                     ax2_twin.set_ylim(0, 1.0)
-            else: # No valid loss data in epoch_df for ylim calculation
-                ax2_twin.set_ylim(0, 1.0)
-        else: # ax2_twin was not created (epoch_df was empty)
-            ax2.text(0.5, 0.5, "无 Epoch 数据用于绘制曲线", horizontalalignment='center', verticalalignment='center', transform=ax2.transAxes)
-            handles, labels = ax2.get_legend_handles_labels() 
-            if handles: 
-                ax2.legend(loc='best')
+            if pd.notna(min_loss) and pd.notna(max_loss) and max_loss > min_loss and min_loss != float('inf'):
+                ax3.set_ylim(max(0, min_loss - 0.1 * (max_loss - min_loss)), max_loss + 0.1 * (max_loss - min_loss))
+            elif pd.notna(max_loss) and max_loss > 0:
+                ax3.set_ylim(0, max_loss * 1.1)
+            else:
+                ax3.set_ylim(0, 1.0)
+        else:
+            ax3.text(0.5, 0.5, "无 Epoch 数据用于绘制损失曲线", 
+                    horizontalalignment='center', verticalalignment='center', 
+                    transform=ax3.transAxes)
 
-        # 3. 准确率分布箱线图 (保持不变)
-        ax3 = axes[1, 0] # Changed from axes[1,1] to axes[1,0] to make it the 3rd plot
+        # 4. 准确率分布箱线图
+        ax4 = axes[1, 1]
         data_for_box = []
         valid_models_for_box = []
         colors = plt.cm.Set2(np.linspace(0, 1, len(models)))
@@ -464,24 +468,16 @@ class ComparisonExperiment:
                 valid_models_for_box.append(model)
         
         if data_for_box:
-            box_plot = ax3.boxplot(data_for_box, labels=valid_models_for_box, patch_artist=True, widths=0.5)
+            box_plot = ax4.boxplot(data_for_box, labels=valid_models_for_box, patch_artist=True, widths=0.5)
             for patch, color in zip(box_plot['boxes'], colors[:len(valid_models_for_box)]):
                 patch.set_facecolor(color)
                 patch.set_alpha(0.8)
-            ax3.set_ylabel('测试准确率 (Test Accuracy)')
-            ax3.set_title('模型测试准确率分布 (跨不同测试环境)')
-            ax3.grid(True, linestyle='--', alpha=0.7)
-            ax3.set_ylim(0, 1.05)
+            ax4.set_ylabel('测试准确率 (Test Accuracy)')
+            ax4.set_title('模型测试准确率分布 (跨不同测试环境)')
+            ax4.grid(True, linestyle='--', alpha=0.7)
+            ax4.set_ylim(0, 1.05)
         else:
-            ax3.text(0.5, 0.5, "无数据显示", horizontalalignment='center', verticalalignment='center', transform=ax3.transAxes)
-
-        # 4. Remove the 'Total Parameters' plot or replace it if needed.
-        # For now, let's remove it by not plotting to axes[1,1]
-        # If you want to keep it, it would be axes[1,1] and you'd use the old ax3 code.
-        # To remove, we can make the 4th subplot invisible or clear it if something was drawn by mistake.
-        if len(axes.ravel()) > 3 : # Check if the 4th subplot exists
-            axes[1, 1].clear() # Clear it
-            axes[1, 1].set_visible(False) # Make it invisible
+            ax4.text(0.5, 0.5, "无数据显示", horizontalalignment='center', verticalalignment='center', transform=ax4.transAxes)
         
         plt.tight_layout(rect=[0, 0, 1, 0.96])
         fig.suptitle(f'模型对比实验综合图表 ({dataset_name_title})', fontsize=16, y=0.99)
