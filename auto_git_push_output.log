@@ -108,3 +108,12 @@
  M auto_git_push.log
  M auto_git_push_output.log
 
+2025-05-30 09:40:09,651 - INFO - Added all changes
+2025-05-30 09:40:09,658 - INFO - Committed changes with message: Auto commit - 2025-05-30 09:40:09
+2025-05-30 09:40:10,914 - INFO - Successfully pushed changes to remote repository
+2025-05-30 10:10:11,014 - INFO - Starting auto git push at 2025-05-30 10:10:11
+2025-05-30 10:10:11,022 - INFO - Found changes:
+ M auto_git_push.log
+ M auto_git_push_output.log
+?? results/comparison_20250530_033511/resnet34_ColoredMNIST_env1/
+
