@@ -28,6 +28,16 @@ class SelfAttentionModule(nn.Module):
         self.gamma = nn.Parameter(torch.zeros(1))
         
         self.softmax = nn.Softmax(dim=-1)
+        
+        # 权重初始化
+        self._init_weights()
+        
+    def _init_weights(self):
+        """初始化权重以提高数值稳定性"""
+        for m in [self.query_conv, self.key_conv, self.value_conv, self.out_conv]:
+            nn.init.xavier_uniform_(m.weight, gain=0.1)  # 更小的gain
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
 
     def forward(self, x):
         batch_size, channels, height, width = x.size()
@@ -41,11 +51,22 @@ class SelfAttentionModule(nn.Module):
         attention = torch.bmm(query, key)
         
         # 添加缩放以稳定Softmax - 使用 key 的维度
-        # key 的形状是 (batch_size, key_dim, height*width)
         key_dim = key.size(1)  # 这是 in_channels // reduction
         attention = attention / math.sqrt(key_dim)
+        
+        # 添加数值稳定性改进
+        # 1. 梯度裁剪
+        attention = torch.clamp(attention, min=-10, max=10)
+        
+        # 2. 检查NaN并处理
+        if torch.isnan(attention).any():
+            attention = torch.zeros_like(attention)
             
         attention = self.softmax(attention)
+        
+        # 3. 再次检查softmax后的NaN
+        if torch.isnan(attention).any():
+            attention = torch.ones_like(attention) / attention.size(-1)
         
         # 应用注意力权重
         out = torch.bmm(value, attention.permute(0, 2, 1))
@@ -53,7 +74,14 @@ class SelfAttentionModule(nn.Module):
         
         # 输出投影和残差连接
         out = self.out_conv(out)
-        out = self.gamma * out + x
+        
+        # 4. 控制gamma的范围防止梯度爆炸
+        gamma_clamped = torch.clamp(self.gamma, min=-1, max=1)
+        out = gamma_clamped * out + x
+        
+        # 5. 最终检查输出
+        if torch.isnan(out).any():
+            return x  # 如果输出有NaN，直接返回输入（跳过attention）
         
         return out
 

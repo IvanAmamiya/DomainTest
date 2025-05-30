@@ -324,3 +324,17 @@
  M auto_git_push.log
  M auto_git_push_output.log
 
+2025-05-30 22:40:49,296 - INFO - Added all changes
+2025-05-30 22:40:49,304 - INFO - Committed changes with message: Auto commit - 2025-05-30 22:40:49
+2025-05-30 22:40:50,533 - INFO - Successfully pushed changes to remote repository
+2025-05-30 23:10:50,633 - INFO - Starting auto git push at 2025-05-30 23:10:50
+2025-05-30 23:10:50,645 - INFO - Found changes:
+ M auto_git_push.log
+ M auto_git_push_output.log
+ M comparison_experiment.py
+ M models.py
+ M trainer.py
+?? results/comparison_20250530_230424/
+?? system_status_monitor.py
+?? test_nan_fix.py
+

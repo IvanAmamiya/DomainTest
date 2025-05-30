@@ -1,0 +1,109 @@
+{
+  "timestamp": "20250530_230519",
+  "experiment_data": {
+    "timestamp": "20250530_230519",
+    "experiment_name": "resnet_domain_experiment",
+    "dataset_name": "ColoredMNIST",
+    "test_env": 0,
+    "input_shape": "(2, 28, 28)",
+    "num_classes": 2,
+    "num_environments": 3,
+    "model_architecture": "RESNET34",
+    "total_parameters": 21282562,
+    "trainable_parameters": 21282562,
+    "pretrained": false,
+    "dropout_rate": 0.4,
+    "epochs": 2,
+    "batch_size": 128,
+    "learning_rate": 0.1,
+    "weight_decay": 0.0001,
+    "final_train_acc": 0.5524364633780483,
+    "final_test_acc": 0.7490785977543499,
+    "best_test_acc": 0.7490785977543499,
+    "final_train_loss": 0.9863472939189014,
+    "final_test_loss": 1.700184175388409,
+    "total_training_time": 52.21460008621216,
+    "avg_epoch_time": 26.10730004310608,
+    "device": "auto"
+  },
+  "config": {
+    "dataset": {
+      "name": "ColoredMNIST",
+      "data_dir": "./DomainBed/domainbed/data/",
+      "test_env": 0
+    },
+    "model": {
+      "type": "resnet34",
+      "pretrained": false,
+      "input_channels": null,
+      "dropout_rate": 0.4
+    },
+    "training": {
+      "epochs": 2,
+      "batch_size": 128,
+      "learning_rate": 0.1,
+      "optimizer_type": "SGD",
+      "momentum": 0.9,
+      "weight_decay": 0.0001,
+      "step_size": 50,
+      "gamma": 0.1,
+      "mixed_precision": true
+    },
+    "experiment": {
+      "name": "resnet_domain_experiment",
+      "device": "auto",
+      "num_workers": 4,
+      "pin_memory": true,
+      "seed": 42
+    },
+    "output": {
+      "save_model": true,
+      "model_path": "./models/",
+      "results_path": "results/comparison_20250530_230424/resnet34_ColoredMNIST_env0",
+      "log_path": "./logs/",
+      "plot_results": true
+    },
+    "batch_experiments": {
+      "enabled": true,
+      "datasets": [
+        "ColoredMNIST"
+      ],
+      "test_envs": [
+        0,
+        1
+      ],
+      "learning_rates": [
+        0.0001,
+        0.0005
+      ],
+      "batch_sizes": [
+        16,
+        32
+      ]
+    }
+  },
+  "train_history": {
+    "loss": [
+      1.0657472246087314,
+      0.9863472939189014
+    ],
+    "accuracy": [
+      0.5278361119444563,
+      0.5524364633780483
+    ]
+  },
+  "test_history": {
+    "loss": [
+      0.9494451600345758,
+      1.700184175388409
+    ],
+    "accuracy": [
+      0.29197737207508356,
+      0.7490785977543499
+    ],
+    "test_env_0_accuracy": [
+      0.29197737207508356,
+      0.7490785977543499
+    ]
+  }
+}

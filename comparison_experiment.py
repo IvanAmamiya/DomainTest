@@ -541,7 +541,8 @@ def main():
     experiment = ComparisonExperiment()
     
     # 修改配置以进行epoch为300的实验
-    experiment.config['training']['epochs'] = 300
+    experiment.config['training']['epochs'] = 2 # 设置为2以便快速测试，实际使用时可以改为300
+    experiment.config['model']['pretrained'] = False  # 使用未预训练的模型进行对比实验
     
     # 配置实验
     datasets = ['ColoredMNIST']  # 可以添加更多数据集

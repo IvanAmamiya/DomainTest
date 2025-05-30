@@ -110,6 +110,11 @@ class DomainGeneralizationTrainer:
                 
                 # 反向传播使用scaler
                 self.scaler.scale(loss).backward()
+                
+                # 梯度裁剪 - 在unscale之后，step之前
+                self.scaler.unscale_(self.optimizer)
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+                
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
             else:
@@ -117,7 +122,16 @@ class DomainGeneralizationTrainer:
                 outputs = self.model(x)
                 loss = self.criterion(outputs, y)
                 loss.backward()
+                
+                # 梯度裁剪
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+                
                 self.optimizer.step()
+            
+            # 检查loss是否为NaN或无穷大
+            if torch.isnan(loss) or torch.isinf(loss):
+                print(f"Warning: NaN or Inf loss detected: {loss.item()}")
+                continue  # 跳过这个batch
             
             total_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
