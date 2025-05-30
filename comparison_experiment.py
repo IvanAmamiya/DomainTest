@@ -17,7 +17,7 @@ import copy
 
 from config_manager import load_config, setup_experiment
 from data_loader import create_dataloader
-from models import create_resnet_model, create_self_attention_resnet34, get_model_info
+from models import create_resnet_model, create_self_attention_resnet18, get_model_info
 from trainer import DomainGeneralizationTrainer
 from results_logger import create_results_logger
 
@@ -78,15 +78,15 @@ class ComparisonExperiment:
             val_loader = train_loader  # 简化处理，实际项目中应该分割数据集
             
             # 创建模型
-            if model_type == 'resnet34':
+            if model_type == 'resnet18':
                 model = create_resnet_model(
                     num_classes=num_classes,
                     input_channels=input_shape[0],
                     pretrained=config['model']['pretrained'],
-                    model_type='resnet34'
+                    model_type='resnet18'
                 ).to(self.device)
-            elif model_type == 'selfattentionresnet34':
-                model = create_self_attention_resnet34(
+            elif model_type == 'selfattentionresnet18':
+                model = create_self_attention_resnet18(
                     num_classes=num_classes,
                     input_channels=input_shape[0],
                     pretrained=config['model']['pretrained']
@@ -206,7 +206,7 @@ class ComparisonExperiment:
                 'TerraIncognita': [0, 1, 2, 3]
             }
         
-        model_types = ['resnet34', 'selfattentionresnet34']
+        model_types = ['selfattentionresnet18', 'resnet18']
         
         print(f"开始对比实验:")
         print(f"模型类型: {model_types}")
@@ -541,7 +541,7 @@ def main():
     experiment = ComparisonExperiment()
     
     # 修改配置以进行epoch为300的实验
-    experiment.config['training']['epochs'] = 2 # 设置为2以便快速测试，实际使用时可以改为300
+    experiment.config['training']['epochs'] = 300 # 恢复为300个epoch进行完整训练
     experiment.config['model']['pretrained'] = False  # 使用未预训练的模型进行对比实验
     
     # 配置实验

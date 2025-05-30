@@ -148,6 +148,68 @@ class SelfAttentionResNet34(nn.Module):
         return x
 
 
+class SelfAttentionResNet18(nn.Module):
+    """带有Self-Attention机制的ResNet18"""
+    def __init__(self, num_classes=10, input_channels=3, pretrained=True):
+        super(SelfAttentionResNet18, self).__init__()
+        
+        # 加载预训练的ResNet18
+        self.backbone = models.resnet18(pretrained=pretrained)
+        
+        # 调整输入通道数
+        if input_channels != 3:
+            original_conv = self.backbone.conv1
+            new_conv = nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+            
+            if pretrained and input_channels == 1:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(torch.mean(original_conv.weight, dim=1, keepdim=True))
+            elif pretrained and input_channels == 2:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(original_conv.weight[:, :2, :, :])
+            
+            self.backbone.conv1 = new_conv
+        
+        # 添加Self-Attention模块到不同层
+        self.attention1 = SelfAttentionModule(64)   # layer1 后
+        self.attention2 = SelfAttentionModule(128)  # layer2 后  
+        self.attention3 = SelfAttentionModule(256)  # layer3 后
+        self.attention4 = SelfAttentionModule(512)  # layer4 后
+        
+        # 替换分类器
+        self.backbone.fc = nn.Linear(self.backbone.fc.in_features, num_classes)
+        
+    def forward(self, x):
+        # 前向传播
+        x = self.backbone.conv1(x)
+        x = self.backbone.bn1(x)
+        x = self.backbone.relu(x)
+        x = self.backbone.maxpool(x)
+        
+        # Layer 1 + Attention
+        x = self.backbone.layer1(x)
+        x = self.attention1(x)
+        
+        # Layer 2 + Attention
+        x = self.backbone.layer2(x)
+        x = self.attention2(x)
+        
+        # Layer 3 + Attention
+        x = self.backbone.layer3(x)
+        x = self.attention3(x)
+        
+        # Layer 4 + Attention
+        x = self.backbone.layer4(x)
+        x = self.attention4(x)
+        
+        # 全局平均池化和分类器
+        x = self.backbone.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.backbone.fc(x)
+        
+        return x
+
+
 def create_resnet_model(num_classes, input_channels=3, pretrained=True, model_type='resnet18'):
     """创建ResNet模型"""
     if model_type == 'resnet18':
@@ -190,6 +252,15 @@ def create_self_attention_resnet34(num_classes, input_channels=3, pretrained=Tru
     )
 
 
+def create_self_attention_resnet18(num_classes, input_channels=3, pretrained=True):
+    """创建Self-Attention ResNet18模型"""
+    return SelfAttentionResNet18(
+        num_classes=num_classes,
+        input_channels=input_channels,
+        pretrained=pretrained
+    )
+
+
 def create_model(config, num_classes, input_shape):
     """根据配置创建模型"""
     input_channels = config['model'].get('input_channels') or input_shape[0]
@@ -209,6 +280,12 @@ def create_model(config, num_classes, input_shape):
             input_channels=input_channels,
             pretrained=pretrained
         )
+    elif model_type == 'selfattentionresnet18':
+        model = create_self_attention_resnet18(
+            num_classes=num_classes,
+            input_channels=input_channels,
+            pretrained=pretrained
+        )
     else:
         raise ValueError(f"不支持的模型类型: {model_type}")
     
@@ -223,6 +300,8 @@ def get_model_info(model, model_type='resnet34'):
     # 根据模型类型设置架构名称
     if model_type == 'selfattentionresnet34':
         architecture = 'Self-Attention ResNet34'
+    elif model_type == 'selfattentionresnet18':
+        architecture = 'Self-Attention ResNet18'
     elif model_type.startswith('resnet'):
         architecture = model_type.upper()
     else:
