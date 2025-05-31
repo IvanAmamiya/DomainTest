@@ -1,0 +1,37 @@
+{
+  "selfattentionresnet18": {
+    "avg_test_accuracy": 0.49443929045684626,
+    "std_test_accuracy": 0.2294393552990324,
+    "avg_training_time": 6118.916353384654,
+    "total_parameters": 11959926,
+    "architecture": "Self-Attention ResNet18",
+    "best_test_accuracy": 0.7441073112196794,
+    "worst_test_accuracy": 0.2928470406720096,
+    "avg_train_accuracy": 0.9997785730101928,
+    "std_train_accuracy": 0.00038352279651311536,
+    "best_train_accuracy": 1.0,
+    "worst_train_accuracy": 0.9993357190305784,
+    "experiments_count": 3
+  },
+  "resnet18": {
+    "avg_test_accuracy": 0.4043441085145086,
+    "std_test_accuracy": 0.17921414832089333,
+    "avg_training_time": 4650.895502408345,
+    "total_parameters": 11174402,
+    "architecture": "RESNET18",
+    "best_test_accuracy": 0.610508721553165,
+    "worst_test_accuracy": 0.28577551107872967,
+    "avg_train_accuracy": 1.0,
+    "std_train_accuracy": 0.0,
+    "best_train_accuracy": 1.0,
+    "worst_train_accuracy": 1.0,
+    "experiments_count": 3
+  },
+  "comparison": {
+    "accuracy_difference": -0.09009518194233768,
+    "time_difference": -1468.0208509763088,
+    "parameter_difference": -785524,
+    "better_model_accuracy": "selfattentionresnet18",
+    "faster_model": "resnet18"
+  }
+}
