@@ -347,12 +347,9 @@ class ComparisonExperiment:
         
         epoch_df = pd.DataFrame(epoch_data)
 
-        # 计算域泛化性能指标
-        domain_generalization_metrics = self.calculate_domain_generalization_metrics(df)
-
-        fig, axes = plt.subplots(2, 3, figsize=(24, 16))  # 改为2x3布局以容纳更多图表
+        fig, axes = plt.subplots(2, 2, figsize=(20, 16))
         
-        # 1. 模型准确率 vs 测试环境 (核心域泛化能力指标)
+        # 1. 模型准确率 vs 测试环境 (泛化能力)
         ax1 = axes[0, 0]
         models = sorted(df['Model'].unique())
         dataset_name_title = df['Dataset'].unique()[0] if len(df['Dataset'].unique()) == 1 else "Multiple Datasets"
@@ -371,28 +368,27 @@ class ComparisonExperiment:
                 acc = df[(df['Model'] == model) & (df['Test_Env'] == env_val)]['Test_Accuracy'].mean()
                 accuracies.append(acc if not pd.isna(acc) else 0)
             offset = (i - (num_models - 1) / 2) * bar_width
-            bars = ax1.bar(x + offset, accuracies, bar_width, label=model, alpha=0.8)
-            
-            # 添加数值标签
-            for bar, acc in zip(bars, accuracies):
-                ax1.annotate(f'{acc:.3f}',
-                            xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                            xytext=(0, 3), textcoords="offset points",
-                            ha='center', va='bottom', fontsize=8)
+            ax1.bar(x + offset, accuracies, bar_width, label=model, alpha=0.8)
         
         ax1.set_xlabel('测试环境 (Test Environment)')
-        ax1.set_ylabel('测试准确率 (Test Accuracy)')
-        ax1.set_title(f'域泛化能力对比 - 跨环境性能 ({dataset_name_title})')
+        ax1.set_ylabel('平均测试准确率 (Average Test Accuracy)')
+        ax1.set_title(f'模型在不同测试环境下的准确率 ({dataset_name_title})')
         ax1.set_xticks(x)
         ax1.set_xticklabels([f"环境 {env}" for env in active_test_envs])
         ax1.legend(title="模型")
         ax1.grid(True, linestyle='--', alpha=0.7)
         ax1.set_ylim(0, 1.05)
+        for p in ax1.patches:
+            ax1.annotate(f"{p.get_height():.3f}", 
+                           (p.get_x() + p.get_width() / 2., p.get_height()), 
+                           ha='center', va='center', xytext=(0, 5), 
+                           textcoords='offset points', fontsize=8)
 
-        # 2. 训练vs测试准确率曲线 (过拟合检测)
+        # 2. 训练准确率曲线
         ax2 = axes[0, 1]
         
         if not epoch_df.empty:
+            # Plot training accuracies
             for model_type in epoch_df['Model'].unique():
                 model_epoch_df = epoch_df[epoch_df['Model'] == model_type]
                 numeric_cols = ['Train_Accuracy', 'Test_Accuracy_Epoch']
@@ -401,28 +397,25 @@ class ComparisonExperiment:
                 
                 if 'Train_Accuracy' in avg_epoch_df.columns:
                     ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Accuracy'], 
-                            marker='o', linestyle='-', linewidth=2, markersize=3,
-                            label=f'{model_type} 训练准确率')
+                            marker='o', linestyle='-', linewidth=2, 
+                            label=f'{model_type} Training Accuracy')
                 if 'Test_Accuracy_Epoch' in avg_epoch_df.columns:
                     ax2.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Accuracy_Epoch'], 
-                            marker='x', linestyle='--', linewidth=2, alpha=0.8, markersize=4,
-                            label=f'{model_type} 测试准确率')
+                            marker='x', linestyle='--', linewidth=2, alpha=0.8,
+                            label=f'{model_type} Test Accuracy')
         
         ax2.set_xlabel('训练轮次 (Epoch)')
         ax2.set_ylabel('准确率 (Accuracy)')
-        ax2.set_title('训练vs测试准确率 - 泛化性能监控')
+        ax2.set_title('模型准确率变化趋势')
         ax2.grid(True, linestyle='--', alpha=0.7)
         ax2.set_ylim(0, 1.05)
         ax2.legend(loc='best')
 
-        # 3. 域泛化性能指标雷达图
-        ax3 = axes[0, 2]
-        self.plot_domain_generalization_radar(ax3, domain_generalization_metrics, models)
-
-        # 4. 训练损失曲线
-        ax4 = axes[1, 0]
+        # 3. 训练损失曲线
+        ax3 = axes[1, 0]
         
         if not epoch_df.empty:
+            # Plot training losses
             for model_type in epoch_df['Model'].unique():
                 model_epoch_df = epoch_df[epoch_df['Model'] == model_type]
                 numeric_cols = ['Train_Loss', 'Test_Loss']
@@ -430,21 +423,21 @@ class ComparisonExperiment:
                 avg_epoch_df = model_epoch_df.groupby('Epoch')[available_cols].mean().reset_index()
                 
                 if 'Train_Loss' in avg_epoch_df.columns:
-                    ax4.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Loss'], 
-                            marker='s', linestyle='-', linewidth=2, markersize=3,
-                            label=f'{model_type} 训练损失')
+                    ax3.plot(avg_epoch_df['Epoch'], avg_epoch_df['Train_Loss'], 
+                            marker='s', linestyle='-', linewidth=2,
+                            label=f'{model_type} Training Loss')
                 if 'Test_Loss' in avg_epoch_df.columns and not avg_epoch_df['Test_Loss'].isnull().all():
-                    ax4.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Loss'], 
-                            marker='^', linestyle='--', linewidth=2, alpha=0.8, markersize=4,
-                            label=f'{model_type} 测试损失')
+                    ax3.plot(avg_epoch_df['Epoch'], avg_epoch_df['Test_Loss'], 
+                            marker='^', linestyle='--', linewidth=2, alpha=0.8,
+                            label=f'{model_type} Test Loss')
         
-        ax4.set_xlabel('训练轮次 (Epoch)')
-        ax4.set_ylabel('损失 (Loss)')
-        ax4.set_title('训练vs测试损失 - 收敛性分析')
-        ax4.grid(True, linestyle='--', alpha=0.7)
-        ax4.legend(loc='best')
+        ax3.set_xlabel('训练轮次 (Epoch)')
+        ax3.set_ylabel('损失 (Loss)')
+        ax3.set_title('模型损失变化趋势')
+        ax3.grid(True, linestyle='--', alpha=0.7)
+        ax3.legend(loc='best')
         
-        # 设置损失图的y轴范围
+        # Set appropriate y-limits for loss plot
         if not epoch_df.empty and (('Train_Loss' in epoch_df.columns and epoch_df['Train_Loss'].notna().any()) or 
                                    ('Test_Loss' in epoch_df.columns and epoch_df['Test_Loss'].notna().any())):
             min_loss = min(epoch_df['Train_Loss'].min() if 'Train_Loss' in epoch_df and epoch_df['Train_Loss'].notna().any() else float('inf'),
@@ -453,18 +446,18 @@ class ComparisonExperiment:
                           epoch_df['Test_Loss'].max() if 'Test_Loss' in epoch_df and epoch_df['Test_Loss'].notna().any() else 0)
             
             if pd.notna(min_loss) and pd.notna(max_loss) and max_loss > min_loss and min_loss != float('inf'):
-                ax4.set_ylim(max(0, min_loss - 0.1 * (max_loss - min_loss)), max_loss + 0.1 * (max_loss - min_loss))
+                ax3.set_ylim(max(0, min_loss - 0.1 * (max_loss - min_loss)), max_loss + 0.1 * (max_loss - min_loss))
             elif pd.notna(max_loss) and max_loss > 0:
-                ax4.set_ylim(0, max_loss * 1.1)
+                ax3.set_ylim(0, max_loss * 1.1)
             else:
-                ax4.set_ylim(0, 1.0)
+                ax3.set_ylim(0, 1.0)
+        else:
+            ax3.text(0.5, 0.5, "无 Epoch 数据用于绘制损失曲线", 
+                    horizontalalignment='center', verticalalignment='center', 
+                    transform=ax3.transAxes)
 
-        # 5. 域间性能差异分析 (Domain Gap Analysis)
-        ax5 = axes[1, 1]
-        self.plot_domain_gap_analysis(ax5, df, models)
-
-        # 6. 模型稳定性分析 - 准确率分布箱线图
-        ax6 = axes[1, 2]
+        # 4. 准确率分布箱线图
+        ax4 = axes[1, 1]
         data_for_box = []
         valid_models_for_box = []
         colors = plt.cm.Set2(np.linspace(0, 1, len(models)))
@@ -475,161 +468,65 @@ class ComparisonExperiment:
                 valid_models_for_box.append(model)
         
         if data_for_box:
-            box_plot = ax6.boxplot(data_for_box, labels=valid_models_for_box, patch_artist=True, widths=0.5)
+            box_plot = ax4.boxplot(data_for_box, labels=valid_models_for_box, patch_artist=True, widths=0.5)
             for patch, color in zip(box_plot['boxes'], colors[:len(valid_models_for_box)]):
                 patch.set_facecolor(color)
                 patch.set_alpha(0.8)
-            ax6.set_ylabel('测试准确率 (Test Accuracy)')
-            ax6.set_title('模型稳定性分析 - 跨域性能分布')
-            ax6.grid(True, linestyle='--', alpha=0.7)
-            ax6.set_ylim(0, 1.05)
-            
-            # 添加统计信息
-            for i, (model, data) in enumerate(zip(valid_models_for_box, data_for_box)):
-                std = np.std(data)
-                ax6.text(i+1, max(data) + 0.02, f'std: {std:.3f}', 
-                        ha='center', va='bottom', fontsize=8)
+            ax4.set_ylabel('测试准确率 (Test Accuracy)')
+            ax4.set_title('模型测试准确率分布 (跨不同测试环境)')
+            ax4.grid(True, linestyle='--', alpha=0.7)
+            ax4.set_ylim(0, 1.05)
         else:
-            ax6.text(0.5, 0.5, "无数据显示", horizontalalignment='center', verticalalignment='center', transform=ax6.transAxes)
+            ax4.text(0.5, 0.5, "无数据显示", horizontalalignment='center', verticalalignment='center', transform=ax4.transAxes)
         
         plt.tight_layout(rect=[0, 0, 1, 0.96])
-        fig.suptitle(f'域泛化对比实验 - 全面性能分析 ({dataset_name_title})', fontsize=16, y=0.98)
+        fig.suptitle(f'模型对比实验综合图表 ({dataset_name_title})', fontsize=16, y=0.99)
         
         plot_file = self.results_dir / "comparison_plots.png"
         plt.savefig(plot_file, dpi=300, bbox_inches='tight')
         plt.close()
         
-        print(f"域泛化对比图表已保存: {plot_file}")
-        
-        # 打印域泛化性能摘要
-        self.print_domain_generalization_summary(domain_generalization_metrics)
-
-    def calculate_domain_generalization_metrics(self, df):
-        """计算域泛化性能指标"""
-        metrics = {}
-        
-        for model in df['Model'].unique():
-            model_df = df[df['Model'] == model]
-            accuracies = model_df['Test_Accuracy'].values
-            
-            # 基本统计
-            mean_acc = np.mean(accuracies)
-            std_acc = np.std(accuracies)
-            min_acc = np.min(accuracies)
-            max_acc = np.max(accuracies)
-            
-            # 域泛化特定指标
-            domain_gap = max_acc - min_acc  # 最大域间性能差异
-            stability_score = 1 - (std_acc / mean_acc) if mean_acc > 0 else 0  # 稳定性得分
-            worst_case_performance = min_acc  # 最差情况性能
-            consistency_score = 1 - (domain_gap / mean_acc) if mean_acc > 0 else 0  # 一致性得分
-            
-            metrics[model] = {
-                'mean_accuracy': mean_acc,
-                'std_accuracy': std_acc,
-                'min_accuracy': min_acc,
-                'max_accuracy': max_acc,
-                'domain_gap': domain_gap,
-                'stability_score': stability_score,
-                'worst_case_performance': worst_case_performance,
-                'consistency_score': consistency_score,
-                'robust_score': (stability_score + consistency_score + worst_case_performance) / 3  # 综合鲁棒性得分
-            }
-        
-        return metrics
-
-    def plot_domain_generalization_radar(self, ax, metrics, models):
-        """绘制域泛化性能雷达图"""
-        # 定义雷达图的维度
-        categories = ['平均准确率', '最差性能', '稳定性', '一致性', '综合鲁棒性']
-        
-        # 计算角度
-        angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-        angles += angles[:1]  # 完成圆环
-        
-        ax = plt.subplot(2, 3, 3, projection='polar')
-        
-        colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']
-        
-        for i, model in enumerate(models):
-            if model in metrics:
-                # 归一化指标值到0-1范围
-                values = [
-                    metrics[model]['mean_accuracy'],
-                    metrics[model]['worst_case_performance'],
-                    metrics[model]['stability_score'],
-                    metrics[model]['consistency_score'],
-                    metrics[model]['robust_score']
-                ]
-                values += values[:1]  # 完成圆环
-                
-                ax.plot(angles, values, 'o-', linewidth=2, label=model, color=colors[i % len(colors)])
-                ax.fill(angles, values, alpha=0.25, color=colors[i % len(colors)])
-        
-        ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(categories)
-        ax.set_ylim(0, 1)
-        ax.set_title('域泛化性能雷达图', y=1.08)
-        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.0))
-        ax.grid(True)
-
-    def plot_domain_gap_analysis(self, ax, df, models):
-        """绘制域间性能差异分析"""
-        domain_gaps = []
-        model_names = []
-        
-        for model in models:
-            model_df = df[df['Model'] == model]
-            if len(model_df) > 1:
-                max_acc = model_df['Test_Accuracy'].max()
-                min_acc = model_df['Test_Accuracy'].min()
-                gap = max_acc - min_acc
-                domain_gaps.append(gap)
-                model_names.append(model)
-        
-        if domain_gaps:
-            colors = ['#FF6B6B' if gap > 0.05 else '#4ECDC4' for gap in domain_gaps]
-            bars = ax.bar(model_names, domain_gaps, color=colors, alpha=0.8)
-            
-            # 添加数值标签
-            for bar, gap in zip(bars, domain_gaps):
-                ax.annotate(f'{gap:.3f}',
-                           xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                           xytext=(0, 3), textcoords="offset points",
-                           ha='center', va='bottom', fontsize=9)
-            
-            ax.set_ylabel('性能差异 (Max - Min Accuracy)')
-            ax.set_title('域间性能差异分析\n(越小表示泛化能力越好)')
-            ax.grid(True, alpha=0.3)
-            
-            # 添加参考线
-            ax.axhline(y=0.05, color='red', linestyle='--', alpha=0.7, label='5%差异线')
-            ax.legend()
-        else:
-            ax.text(0.5, 0.5, "需要多个测试环境数据", 
-                   horizontalalignment='center', verticalalignment='center', 
-                   transform=ax.transAxes)
-
-    def print_domain_generalization_summary(self, metrics):
-        """打印域泛化性能摘要"""
+        print(f"对比图表已保存: {plot_file}")
+    
+    def print_summary(self, summary):
+        """打印摘要统计"""
         print(f"\n{'='*80}")
-        print("域泛化性能分析")
+        print("实验结果摘要")
         print(f"{'='*80}")
         
-        for model, stats in metrics.items():
-            print(f"\n🔸 {model}:")
-            print(f"  平均准确率: {stats['mean_accuracy']:.4f}")
-            print(f"  最差环境性能: {stats['worst_case_performance']:.4f}")
-            print(f"  域间性能差异: {stats['domain_gap']:.4f}")
-            print(f"  稳定性得分: {stats['stability_score']:.4f}")
-            print(f"  一致性得分: {stats['consistency_score']:.4f}")
-            print(f"  综合鲁棒性: {stats['robust_score']:.4f}")
+        for model, stats in summary.items():
+            if model == 'comparison':
+                continue
             
-        # 找出最佳域泛化模型
-        if len(metrics) >= 2:
-            best_model = max(metrics.keys(), key=lambda x: metrics[x]['robust_score'])
-            print(f"\n🏆 最佳域泛化模型: {best_model}")
-            print(f"   综合鲁棒性得分: {metrics[best_model]['robust_score']:.4f}")
+            print(f"\n{model}:")
+            print(f"  架构: {stats['architecture']}")
+            print(f"  参数数量: {stats['total_parameters']:,}")
+            if stats['avg_test_accuracy'] is not None:
+                print(f"  平均测试准确率: {stats['avg_test_accuracy']:.4f} ± {stats['std_test_accuracy']:.4f}")
+                print(f"  最佳测试准确率: {stats['best_test_accuracy']:.4f}")
+                print(f"  最差测试准确率: {stats['worst_test_accuracy']:.4f}")
+            else:
+                print("  测试准确率: N/A")
+            if stats['avg_train_accuracy'] is not None:
+                print(f"  平均训练准确率: {stats['avg_train_accuracy']:.4f} ± {stats['std_train_accuracy']:.4f}")
+                print(f"  最佳训练准确率: {stats['best_train_accuracy']:.4f}")
+                print(f"  最差训练准确率: {stats['worst_train_accuracy']:.4f}")
+            else:
+                print("  训练准确率: N/A")
+            print(f"  平均训练时间: {stats['avg_training_time']:.2f} 秒")
+            print(f"  实验次数: {stats['experiments_count']}")
+        
+        if 'comparison' in summary:
+            comp = summary['comparison']
+            print(f"\n对比分析:")
+            if comp['accuracy_difference'] is not None:
+                print(f"  测试准确率差异: {comp['accuracy_difference']:+.4f}")
+            else:
+                print("  测试准确率差异: N/A")
+            print(f"  训练时间差异: {comp['time_difference']:+.2f} 秒")
+            print(f"  参数数量差异: {comp['parameter_difference']:+,}")
+            print(f"  准确率更高的模型: {comp['better_model_accuracy']}")
+            print(f"  训练更快的模型: {comp['faster_model']}")
 
 
 def main():
