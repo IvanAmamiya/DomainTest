@@ -146,3 +146,136 @@ plt.savefig('results/comparison_20250531_014709/env_stability_iqr.png', dpi=200)
 plt.show()
 
 print("不同env下测试集精度/loss稳定性误差棒图已保存为 results/comparison_20250531_014709/env_stability_iqr.png")
+
+# ========== 追加env=1和env=2的训练/测试曲线 =============
+fig, axes = plt.subplots(3, 2, figsize=(14, 14))
+for idx, env in enumerate([0, 1, 2]):
+    resnet = None
+    sa_resnet = None
+    for r in results:
+        if r['model_type'] == 'resnet18' and r['test_env'] == env:
+            resnet = r
+        if r['model_type'] == 'selfattentionresnet18' and r['test_env'] == env:
+            sa_resnet = r
+    if resnet is None or sa_resnet is None:
+        continue
+    # 训练/测试损失
+    axes[idx, 0].plot(resnet['train_history']['loss'], label='ResNet18 Train Loss', color='red', alpha=0.7)
+    axes[idx, 0].plot(resnet['test_history']['loss'], label='ResNet18 Test Loss', color='orange', alpha=0.7)
+    axes[idx, 0].plot(sa_resnet['train_history']['loss'], label='SA-ResNet18 Train Loss', color='blue', alpha=0.7)
+    axes[idx, 0].plot(sa_resnet['test_history']['loss'], label='SA-ResNet18 Test Loss', color='green', alpha=0.7)
+    axes[idx, 0].set_title(f'Env {env} Loss')
+    axes[idx, 0].legend(fontsize=8)
+    axes[idx, 0].set_ylabel('Loss')
+    axes[idx, 0].set_xlabel('Epoch')
+    axes[idx, 0].grid(True, alpha=0.3)
+    # 训练/测试精度
+    axes[idx, 1].plot(resnet['train_history']['accuracy'], label='ResNet18 Train Acc', color='purple', alpha=0.7)
+    axes[idx, 1].plot(resnet['test_history']['accuracy'], label='ResNet18 Test Acc', color='brown', alpha=0.7)
+    axes[idx, 1].plot(sa_resnet['train_history']['accuracy'], label='SA-ResNet18 Train Acc', color='cyan', alpha=0.7)
+    axes[idx, 1].plot(sa_resnet['test_history']['accuracy'], label='SA-ResNet18 Test Acc', color='lime', alpha=0.7)
+    axes[idx, 1].set_title(f'Env {env} Accuracy')
+    axes[idx, 1].legend(fontsize=8)
+    axes[idx, 1].set_ylabel('Accuracy')
+    axes[idx, 1].set_xlabel('Epoch')
+    axes[idx, 1].set_ylim(0, 1)
+    axes[idx, 1].grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('results/comparison_20250531_014709/all_envs_train_test_curves.png', dpi=200)
+plt.show()
+print('所有env下训练/测试曲线已保存为 results/comparison_20250531_014709/all_envs_train_test_curves.png')
+
+# ========== 新增：分开绘制训练和测试曲线，增强颜色对比 =============
+fig, axes = plt.subplots(3, 1, figsize=(10, 12))
+for idx, env in enumerate([0, 1, 2]):
+    resnet = None
+    sa_resnet = None
+    for r in results:
+        if r['model_type'] == 'resnet18' and r['test_env'] == env:
+            resnet = r
+        if r['model_type'] == 'selfattentionresnet18' and r['test_env'] == env:
+            sa_resnet = r
+    if resnet is None or sa_resnet is None:
+        continue
+    axes[idx].plot(resnet['train_history']['accuracy'], label='ResNet18 Train', color='#D62728', linewidth=2)
+    axes[idx].plot(sa_resnet['train_history']['accuracy'], label='SA-ResNet18 Train', color='#1F77B4', linewidth=2)
+    axes[idx].set_title(f'Env {env} Train Accuracy', fontsize=13)
+    axes[idx].set_ylabel('Accuracy')
+    axes[idx].set_xlabel('Epoch')
+    axes[idx].set_ylim(0, 1)
+    axes[idx].legend(fontsize=10)
+    axes[idx].grid(True, alpha=0.4)
+plt.tight_layout()
+plt.savefig('results/comparison_20250531_014709/all_envs_train_accuracy.png', dpi=200)
+plt.show()
+print('所有env下训练精度对比图已保存为 results/comparison_20250531_014709/all_envs_train_accuracy.png')
+
+fig, axes = plt.subplots(3, 1, figsize=(10, 12))
+for idx, env in enumerate([0, 1, 2]):
+    resnet = None
+    sa_resnet = None
+    for r in results:
+        if r['model_type'] == 'resnet18' and r['test_env'] == env:
+            resnet = r
+        if r['model_type'] == 'selfattentionresnet18' and r['test_env'] == env:
+            sa_resnet = r
+    if resnet is None or sa_resnet is None:
+        continue
+    axes[idx].plot(resnet['test_history']['accuracy'], label='ResNet18 Test', color='#FF7F0E', linewidth=2)
+    axes[idx].plot(sa_resnet['test_history']['accuracy'], label='SA-ResNet18 Test', color='#2CA02C', linewidth=2)
+    axes[idx].set_title(f'Env {env} Test Accuracy', fontsize=13)
+    axes[idx].set_ylabel('Accuracy')
+    axes[idx].set_xlabel('Epoch')
+    axes[idx].set_ylim(0, 1)
+    axes[idx].legend(fontsize=10)
+    axes[idx].grid(True, alpha=0.4)
+plt.tight_layout()
+plt.savefig('results/comparison_20250531_014709/all_envs_test_accuracy.png', dpi=200)
+plt.show()
+print('所有env下测试精度对比图已保存为 results/comparison_20250531_014709/all_envs_test_accuracy.png')
+
+fig, axes = plt.subplots(3, 1, figsize=(10, 12))
+for idx, env in enumerate([0, 1, 2]):
+    resnet = None
+    sa_resnet = None
+    for r in results:
+        if r['model_type'] == 'resnet18' and r['test_env'] == env:
+            resnet = r
+        if r['model_type'] == 'selfattentionresnet18' and r['test_env'] == env:
+            sa_resnet = r
+    if resnet is None or sa_resnet is None:
+        continue
+    axes[idx].plot(resnet['train_history']['loss'], label='ResNet18 Train', color='#8C564B', linewidth=2)
+    axes[idx].plot(sa_resnet['train_history']['loss'], label='SA-ResNet18 Train', color='#17BECF', linewidth=2)
+    axes[idx].set_title(f'Env {env} Train Loss', fontsize=13)
+    axes[idx].set_ylabel('Loss')
+    axes[idx].set_xlabel('Epoch')
+    axes[idx].legend(fontsize=10)
+    axes[idx].grid(True, alpha=0.4)
+plt.tight_layout()
+plt.savefig('results/comparison_20250531_014709/all_envs_train_loss.png', dpi=200)
+plt.show()
+print('所有env下训练损失对比图已保存为 results/comparison_20250531_014709/all_envs_train_loss.png')
+
+fig, axes = plt.subplots(3, 1, figsize=(10, 12))
+for idx, env in enumerate([0, 1, 2]):
+    resnet = None
+    sa_resnet = None
+    for r in results:
+        if r['model_type'] == 'resnet18' and r['test_env'] == env:
+            resnet = r
+        if r['model_type'] == 'selfattentionresnet18' and r['test_env'] == env:
+            sa_resnet = r
+    if resnet is None or sa_resnet is None:
+        continue
+    axes[idx].plot(resnet['test_history']['loss'], label='ResNet18 Test', color='#E377C2', linewidth=2)
+    axes[idx].plot(sa_resnet['test_history']['loss'], label='SA-ResNet18 Test', color='#BCBD22', linewidth=2)
+    axes[idx].set_title(f'Env {env} Test Loss', fontsize=13)
+    axes[idx].set_ylabel('Loss')
+    axes[idx].set_xlabel('Epoch')
+    axes[idx].legend(fontsize=10)
+    axes[idx].grid(True, alpha=0.4)
+plt.tight_layout()
+plt.savefig('results/comparison_20250531_014709/all_envs_test_loss.png', dpi=200)
+plt.show()
+print('所有env下测试损失对比图已保存为 results/comparison_20250531_014709/all_envs_test_loss.png')

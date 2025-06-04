@@ -112,7 +112,21 @@ def quick_test():
     print("\n=== 所有测试通过！可以开始正式训练 ===")
     return True
 
+def print_coloredmnist_env_mapping():
+    """打印 ColoredMNIST 的 env 编号与 domain 名称对应关系"""
+    from data_loader import DomainDataLoader
+    import yaml
+    with open('config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+    config['dataset']['name'] = 'ColoredMNIST'
+    loader = DomainDataLoader(config)
+    env_names = loader.environment_names
+    print("ColoredMNIST 环境编号与 domain 名称对应表：")
+    for idx, name in enumerate(env_names):
+        print(f"  env{idx}: {name}")
+
 if __name__ == '__main__':
+    print_coloredmnist_env_mapping()
     success = quick_test()
     if success:
         print("\n使用以下命令开始训练:")

@@ -11,7 +11,7 @@ model:
   type: "resnet18"  # resnet18, resnet34, resnet50
   pretrained: true
   input_channels: null  # null表示自动从数据集获取
-  dropout_rate: 0 # 统一关闭Dropout
+  dropout_rate: 0.4 # 启用 Dropout，设置为 0.4
 
 # 训练配置
 training:
@@ -24,6 +24,7 @@ training:
   step_size: 50 # 学习率衰减步长
   gamma: 0.1
   mixed_precision: true  # 启用混合精度训练 (自动混合精度 AMP)
+  data_augmentation: true # 启用数据增强
   
 # 实验配置
 experiment:
