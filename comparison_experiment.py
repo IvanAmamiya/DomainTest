@@ -538,7 +538,7 @@ def main():
     
     # 修改配置以进行epoch为300的实验
     experiment.config['training']['epochs'] = 300 # 恢复为300个epoch进行完整训练
-    experiment.config['model']['pretrained'] = True  # 使用预训练的模型进行对比实验
+    experiment.config['model']['pretrained'] = True  # ImageNetの事前学習済みモデルを用いて比較実験を行う
     
     # 支持命令行参数覆盖
     import argparse
