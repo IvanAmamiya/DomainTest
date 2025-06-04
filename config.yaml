@@ -11,14 +11,14 @@ model:
   type: "resnet18"  # resnet18, resnet34, resnet50
   pretrained: true
   input_channels: null  # null表示自动从数据集获取
-  dropout_rate: 0.4 # 启用 Dropout，设置为 0.4
+  dropout_rate: 0 # 统一关闭Dropout
 
 # 训练配置
 training:
-  epochs: 150
+  epochs: 300
   batch_size: 128 # 修改为 128
   learning_rate: 0.1 # 修改为 0.1
-  optimizer_type: "SGD"  # 指定优化器类型
+  optimizer_type: "SGD"  # 指定优化器类型，已改为Adam
   momentum: 0.9          # SGD的动量参数
   weight_decay: 0.0001
   step_size: 50 # 学习率衰减步长

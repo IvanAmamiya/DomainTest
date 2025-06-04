@@ -193,7 +193,7 @@ class DomainGeneralizationTrainer:
         return avg_loss, avg_accuracy, env_results
     
     def train(self, num_epochs):
-        """完整训练过程"""
+        """完整训练过程（无 Early Stopping）"""
         print(f"开始训练 {num_epochs} 个epochs...")
         print(f"使用设备: {self.device}")
         print(f"训练环境数量: {len(self.train_loaders)}")

@@ -538,14 +538,30 @@ def main():
     
     # 修改配置以进行epoch为300的实验
     experiment.config['training']['epochs'] = 300 # 恢复为300个epoch进行完整训练
-    experiment.config['model']['pretrained'] = False  # 使用未预训练的模型进行对比实验
+    experiment.config['model']['pretrained'] = True  # 使用预训练的模型进行对比实验
     
-    # 配置实验
-    datasets = ['ColoredMNIST']  # 可以添加更多数据集
-    test_envs = {
-        'ColoredMNIST': [0, 1, 2]
-    }
-    
+    # 支持命令行参数覆盖
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pretrained', type=str, choices=['true','false'], default=None, help='是否使用预训练权重')
+    parser.add_argument('--model_type', type=str, choices=['resnet18','selfattentionresnet18','resnet34','selfattentionresnet34'], default=None, help='模型类型')
+    parser.add_argument('--dataset', type=str, default=None, help='数据集名称')
+    parser.add_argument('--test_envs', type=str, default=None, help='测试环境列表, 逗号分隔')
+    args = parser.parse_args()
+
+    if args.pretrained is not None:
+        experiment.config['model']['pretrained'] = (args.pretrained.lower() == 'true')
+    if args.model_type is not None:
+        experiment.config['model']['type'] = args.model_type
+    if args.dataset is not None:
+        datasets = [args.dataset]
+    else:
+        datasets = ['ColoredMNIST']
+    if args.test_envs is not None:
+        test_envs = {datasets[0]: [int(e) for e in args.test_envs.split(',')]}
+    else:
+        test_envs = {'ColoredMNIST': [0, 1, 2]}
+
     # 运行实验
     results = experiment.run_comparison_experiments(datasets, test_envs)
     
