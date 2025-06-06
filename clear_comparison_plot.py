@@ -5,7 +5,7 @@ import os
 from scipy.stats import iqr
 
 # 路径配置
-data_path = "results/comparison_20250531_014709/comparison_results.json"
+data_path = "results/comparison_20250605_011332/comparison_results.json"
 
 with open(data_path, 'r') as f:
     results = json.load(f)
@@ -51,10 +51,10 @@ plt.title('Test Accuracy')
 plt.legend()
 
 plt.tight_layout()
-plt.savefig('results/comparison_20250531_014709/clear_comparison_plot.png', dpi=200)
+plt.savefig('results/comparison_20250605_011332/clear_comparison_plot.png', dpi=200)
 plt.show()
 
-print("图已保存为 results/comparison_20250531_014709/clear_comparison_plot.png")
+print("图已保存为 results/comparison_20250605_011332/clear_comparison_plot.png")
 
 # ================== 新增：不同Env对比 =====================
 # 收集不同env下的测试精度
@@ -78,10 +78,10 @@ plt.title('Test Accuracy across Different Envs')
 plt.legend()
 plt.grid(True, linestyle='--', alpha=0.5)
 plt.tight_layout()
-plt.savefig('results/comparison_20250531_014709/env_comparison_plot.png', dpi=200)
+plt.savefig('results/comparison_20250605_011332/env_comparison_plot.png', dpi=200)
 plt.show()
 
-print("Env对比图已保存为 results/comparison_20250531_014709/env_comparison_plot.png")
+print("Env对比图已保存为 results/comparison_20250605_011332/env_comparison_plot.png")
 
 # ================== 新增：不同Env下测试集精度/loss稳定性分析 =====================
 def remove_outliers_iqr(data):
@@ -142,10 +142,10 @@ plt.title('Test Loss Stability (IQR去离群)')
 plt.legend()
 
 plt.tight_layout()
-plt.savefig('results/comparison_20250531_014709/env_stability_iqr.png', dpi=200)
+plt.savefig('results/comparison_20250605_011332/env_stability_iqr.png', dpi=200)
 plt.show()
 
-print("不同env下测试集精度/loss稳定性误差棒图已保存为 results/comparison_20250531_014709/env_stability_iqr.png")
+print("不同env下测试集精度/loss稳定性误差棒图已保存为 results/comparison_20250605_011332/env_stability_iqr.png")
 
 # ========== 追加env=1和env=2的训练/测试曲线 =============
 fig, axes = plt.subplots(3, 2, figsize=(14, 14))
@@ -181,9 +181,9 @@ for idx, env in enumerate([0, 1, 2]):
     axes[idx, 1].set_ylim(0, 1)
     axes[idx, 1].grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig('results/comparison_20250531_014709/all_envs_train_test_curves.png', dpi=200)
+plt.savefig('results/comparison_20250605_011332/all_envs_train_test_curves.png', dpi=200)
 plt.show()
-print('所有env下训练/测试曲线已保存为 results/comparison_20250531_014709/all_envs_train_test_curves.png')
+print('所有env下训练/测试曲线已保存为 results/comparison_20250605_011332/all_envs_train_test_curves.png')
 
 # ========== 新增：分开绘制训练和测试曲线，增强颜色对比 =============
 fig, axes = plt.subplots(3, 1, figsize=(10, 12))
@@ -206,9 +206,9 @@ for idx, env in enumerate([0, 1, 2]):
     axes[idx].legend(fontsize=10)
     axes[idx].grid(True, alpha=0.4)
 plt.tight_layout()
-plt.savefig('results/comparison_20250531_014709/all_envs_train_accuracy.png', dpi=200)
+plt.savefig('results/comparison_20250605_011332/all_envs_train_accuracy.png', dpi=200)
 plt.show()
-print('所有env下训练精度对比图已保存为 results/comparison_20250531_014709/all_envs_train_accuracy.png')
+print('所有env下训练精度对比图已保存为 results/comparison_20250605_011332/all_envs_train_accuracy.png')
 
 fig, axes = plt.subplots(3, 1, figsize=(10, 12))
 for idx, env in enumerate([0, 1, 2]):
@@ -230,9 +230,9 @@ for idx, env in enumerate([0, 1, 2]):
     axes[idx].legend(fontsize=10)
     axes[idx].grid(True, alpha=0.4)
 plt.tight_layout()
-plt.savefig('results/comparison_20250531_014709/all_envs_test_accuracy.png', dpi=200)
+plt.savefig('results/comparison_20250605_011332/all_envs_test_accuracy.png', dpi=200)
 plt.show()
-print('所有env下测试精度对比图已保存为 results/comparison_20250531_014709/all_envs_test_accuracy.png')
+print('所有env下测试精度对比图已保存为 results/comparison_20250605_011332/all_envs_test_accuracy.png')
 
 fig, axes = plt.subplots(3, 1, figsize=(10, 12))
 for idx, env in enumerate([0, 1, 2]):
@@ -253,9 +253,9 @@ for idx, env in enumerate([0, 1, 2]):
     axes[idx].legend(fontsize=10)
     axes[idx].grid(True, alpha=0.4)
 plt.tight_layout()
-plt.savefig('results/comparison_20250531_014709/all_envs_train_loss.png', dpi=200)
+plt.savefig('results/comparison_20250605_011332/all_envs_train_loss.png', dpi=200)
 plt.show()
-print('所有env下训练损失对比图已保存为 results/comparison_20250531_014709/all_envs_train_loss.png')
+print('所有env下训练损失对比图已保存为 results/comparison_20250605_011332/all_envs_train_loss.png')
 
 fig, axes = plt.subplots(3, 1, figsize=(10, 12))
 for idx, env in enumerate([0, 1, 2]):
@@ -276,6 +276,6 @@ for idx, env in enumerate([0, 1, 2]):
     axes[idx].legend(fontsize=10)
     axes[idx].grid(True, alpha=0.4)
 plt.tight_layout()
-plt.savefig('results/comparison_20250531_014709/all_envs_test_loss.png', dpi=200)
+plt.savefig('results/comparison_20250605_011332/all_envs_test_loss.png', dpi=200)
 plt.show()
-print('所有env下测试损失对比图已保存为 results/comparison_20250531_014709/all_envs_test_loss.png')
+print('所有env下测试损失对比图已保存为 results/comparison_20250605_011332/all_envs_test_loss.png')
