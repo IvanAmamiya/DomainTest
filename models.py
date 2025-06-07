@@ -210,6 +210,109 @@ class SelfAttentionResNet18(nn.Module):
         return x
 
 
+class SelfAttentionResNet50(nn.Module):
+    """带有Self-Attention机制的ResNet50"""
+    def __init__(self, num_classes=10, input_channels=3, pretrained=True):
+        super(SelfAttentionResNet50, self).__init__()
+        self.backbone = models.resnet50(pretrained=pretrained)
+        if input_channels != 3:
+            original_conv = self.backbone.conv1
+            new_conv = nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+            if pretrained and input_channels == 1:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(torch.mean(original_conv.weight, dim=1, keepdim=True))
+            elif pretrained and input_channels == 2:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(original_conv.weight[:, :2, :, :])
+            self.backbone.conv1 = new_conv
+        self.attention1 = SelfAttentionModule(256)   # layer1 后
+        self.attention2 = SelfAttentionModule(512)   # layer2 后  
+        self.attention3 = SelfAttentionModule(1024)  # layer3 后
+        self.attention4 = SelfAttentionModule(2048)  # layer4 后
+        self.backbone.fc = nn.Linear(self.backbone.fc.in_features, num_classes)
+    def forward(self, x):
+        x = self.backbone.conv1(x)
+        x = self.backbone.bn1(x)
+        x = self.backbone.relu(x)
+        x = self.backbone.maxpool(x)
+        x = self.backbone.layer1(x)
+        x = self.attention1(x)
+        x = self.backbone.layer2(x)
+        x = self.attention2(x)
+        x = self.backbone.layer3(x)
+        x = self.attention3(x)
+        x = self.backbone.layer4(x)
+        x = self.attention4(x)
+        x = self.backbone.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.backbone.fc(x)
+        return x
+
+
+class MultiHeadSelfAttentionModule(nn.Module):
+    """多头自注意力模块"""
+    def __init__(self, in_channels, num_heads=4, reduction=8):
+        super(MultiHeadSelfAttentionModule, self).__init__()
+        self.in_channels = in_channels
+        self.num_heads = num_heads
+        self.reduction = reduction
+        assert in_channels % num_heads == 0, "in_channels 必须能被 num_heads 整除"
+        self.head_dim = in_channels // num_heads
+        self.attentions = nn.ModuleList([
+            SelfAttentionModule(self.head_dim, reduction) for _ in range(num_heads)
+        ])
+        self.out_proj = nn.Conv2d(in_channels, in_channels, 1)
+
+    def forward(self, x):
+        # x: (B, C, H, W)
+        B, C, H, W = x.shape
+        # 按通道分组
+        x_split = torch.chunk(x, self.num_heads, dim=1)
+        out_heads = [att(xi) for att, xi in zip(self.attentions, x_split)]
+        out = torch.cat(out_heads, dim=1)
+        out = self.out_proj(out)
+        return out
+
+
+class MultiHeadSelfAttentionResNet18(nn.Module):
+    """带有多头自注意力机制的ResNet18"""
+    def __init__(self, num_classes=10, input_channels=3, pretrained=True, num_heads=4):
+        super(MultiHeadSelfAttentionResNet18, self).__init__()
+        self.backbone = models.resnet18(pretrained=pretrained)
+        if input_channels != 3:
+            original_conv = self.backbone.conv1
+            new_conv = nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+            if pretrained and input_channels == 1:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(torch.mean(original_conv.weight, dim=1, keepdim=True))
+            elif pretrained and input_channels == 2:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(original_conv.weight[:, :2, :, :])
+            self.backbone.conv1 = new_conv
+        self.attention1 = MultiHeadSelfAttentionModule(64, num_heads=num_heads)
+        self.attention2 = MultiHeadSelfAttentionModule(128, num_heads=num_heads)
+        self.attention3 = MultiHeadSelfAttentionModule(256, num_heads=num_heads)
+        self.attention4 = MultiHeadSelfAttentionModule(512, num_heads=num_heads)
+        self.backbone.fc = nn.Linear(self.backbone.fc.in_features, num_classes)
+    def forward(self, x):
+        x = self.backbone.conv1(x)
+        x = self.backbone.bn1(x)
+        x = self.backbone.relu(x)
+        x = self.backbone.maxpool(x)
+        x = self.backbone.layer1(x)
+        x = self.attention1(x)
+        x = self.backbone.layer2(x)
+        x = self.attention2(x)
+        x = self.backbone.layer3(x)
+        x = self.attention3(x)
+        x = self.backbone.layer4(x)
+        x = self.attention4(x)
+        x = self.backbone.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.backbone.fc(x)
+        return x
+
+
 def create_resnet_model(num_classes, input_channels=3, pretrained=True, model_type='resnet18'):
     """创建ResNet模型"""
     if model_type == 'resnet18':
@@ -261,6 +364,25 @@ def create_self_attention_resnet18(num_classes, input_channels=3, pretrained=Tru
     )
 
 
+def create_self_attention_resnet50(num_classes, input_channels=3, pretrained=True):
+    """创建Self-Attention ResNet50模型"""
+    return SelfAttentionResNet50(
+        num_classes=num_classes,
+        input_channels=input_channels,
+        pretrained=pretrained
+    )
+
+
+def create_multihead_self_attention_resnet18(num_classes, input_channels=3, pretrained=True, num_heads=4):
+    """创建多头自注意力ResNet18模型"""
+    return MultiHeadSelfAttentionResNet18(
+        num_classes=num_classes,
+        input_channels=input_channels,
+        pretrained=pretrained,
+        num_heads=num_heads
+    )
+
+
 def create_model(config, num_classes, input_shape):
     """根据配置创建模型"""
     input_channels = config['model'].get('input_channels') or input_shape[0]
@@ -286,6 +408,20 @@ def create_model(config, num_classes, input_shape):
             input_channels=input_channels,
             pretrained=pretrained
         )
+    elif model_type == 'selfattentionresnet50':
+        model = create_self_attention_resnet50(
+            num_classes=num_classes,
+            input_channels=input_channels,
+            pretrained=pretrained
+        )
+    elif model_type == 'multiheadselfattentionresnet18':
+        num_heads = config['model'].get('num_heads', 4)
+        model = create_multihead_self_attention_resnet18(
+            num_classes=num_classes,
+            input_channels=input_channels,
+            pretrained=pretrained,
+            num_heads=num_heads
+        )
     else:
         raise ValueError(f"不支持的模型类型: {model_type}")
     
@@ -302,6 +438,8 @@ def get_model_info(model, model_type='resnet34'):
         architecture = 'Self-Attention ResNet34'
     elif model_type == 'selfattentionresnet18':
         architecture = 'Self-Attention ResNet18'
+    elif model_type == 'selfattentionresnet50':
+        architecture = 'Self-Attention ResNet50'
     elif model_type.startswith('resnet'):
         architecture = model_type.upper()
     else:
