@@ -17,7 +17,7 @@ import copy
 
 from config_manager import load_config, setup_experiment
 from data_loader import create_dataloader
-from models import create_resnet_model, create_self_attention_resnet18, create_self_attention_resnet50, create_multihead_self_attention_resnet18, get_model_info
+from models import create_resnet_model, create_self_attention_resnet18, create_self_attention_resnet50, create_self_attention_resnet152, create_multihead_self_attention_resnet18, get_model_info
 from trainer import DomainGeneralizationTrainer
 from results_logger import create_results_logger
 
@@ -111,6 +111,19 @@ class ComparisonExperiment:
                     input_channels=input_shape[0],
                     pretrained=config['model']['pretrained'],
                     num_heads=num_heads
+                ).to(self.device)
+            elif model_type == 'resnet152':
+                model = create_resnet_model(
+                    num_classes=num_classes,
+                    input_channels=input_shape[0],
+                    pretrained=config['model']['pretrained'],
+                    model_type='resnet152'
+                ).to(self.device)
+            elif model_type == 'selfattentionresnet152':
+                model = create_self_attention_resnet152(
+                    num_classes=num_classes,
+                    input_channels=input_shape[0],
+                    pretrained=config['model']['pretrained']
                 ).to(self.device)
             else:
                 raise ValueError(f"不支持的模型类型: {model_type}")
@@ -227,7 +240,8 @@ class ComparisonExperiment:
                 'TerraIncognita': [0, 1, 2, 3]
             }
         
-        model_types = ['selfattentionresnet50', 'resnet50']
+        # 比较 ResNet152 与其自注意力版本
+        model_types = ['resnet152', 'selfattentionresnet152']
         
         print(f"开始对比实验:")
         print(f"模型类型: {model_types}")
@@ -565,7 +579,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--pretrained', type=str, choices=['true','false'], default=None, help='是否使用预训练权重')
-    parser.add_argument('--model_type', type=str, choices=['resnet18','selfattentionresnet18','multiheadselfattentionresnet18','resnet34','selfattentionresnet34','resnet50','selfattentionresnet50'], default=None, help='模型类型')
+    parser.add_argument('--model_type', type=str, choices=['resnet18','selfattentionresnet18','multiheadselfattentionresnet18','resnet34','selfattentionresnet34','resnet50','selfattentionresnet50','resnet152','selfattentionresnet152'], default=None, help='模型类型')
     parser.add_argument('--dataset', type=str, default=None, help='数据集名称')
     parser.add_argument('--test_envs', type=str, default=None, help='测试环境列表, 逗号分隔')
     parser.add_argument('--num_heads', type=int, default=4, help='多头自注意力的head数（仅multiheadselfattentionresnet18有效）')

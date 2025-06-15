@@ -249,6 +249,47 @@ class SelfAttentionResNet50(nn.Module):
         return x
 
 
+class SelfAttentionResNet152(nn.Module):
+    """带有Self-Attention机制的ResNet152"""
+    def __init__(self, num_classes=10, input_channels=3, pretrained=True):
+        super(SelfAttentionResNet152, self).__init__()
+        self.backbone = models.resnet152(pretrained=pretrained)
+        if input_channels != 3:
+            original_conv = self.backbone.conv1
+            new_conv = nn.Conv2d(input_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+            if pretrained and input_channels == 1:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(torch.mean(original_conv.weight, dim=1, keepdim=True))
+            elif pretrained and input_channels == 2:
+                with torch.no_grad():
+                    new_conv.weight = nn.Parameter(original_conv.weight[:, :2, :, :])
+            self.backbone.conv1 = new_conv
+        # 单头自注意力模块
+        self.attention1 = SelfAttentionModule(64)
+        self.attention2 = SelfAttentionModule(128)
+        self.attention3 = SelfAttentionModule(256)
+        self.attention4 = SelfAttentionModule(512)
+        self.backbone.fc = nn.Linear(self.backbone.fc.in_features, num_classes)
+
+    def forward(self, x):
+        x = self.backbone.conv1(x)
+        x = self.backbone.bn1(x)
+        x = self.backbone.relu(x)
+        x = self.backbone.maxpool(x)
+        x = self.backbone.layer1(x)
+        x = self.attention1(x)
+        x = self.backbone.layer2(x)
+        x = self.attention2(x)
+        x = self.backbone.layer3(x)
+        x = self.attention3(x)
+        x = self.backbone.layer4(x)
+        x = self.attention4(x)
+        x = self.backbone.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.backbone.fc(x)
+        return x
+
+
 class MultiHeadSelfAttentionModule(nn.Module):
     """多头自注意力模块"""
     def __init__(self, in_channels, num_heads=4, reduction=8):
@@ -321,6 +362,8 @@ def create_resnet_model(num_classes, input_channels=3, pretrained=True, model_ty
         model = models.resnet34(pretrained=pretrained)
     elif model_type == 'resnet50':
         model = models.resnet50(pretrained=pretrained)
+    elif model_type == 'resnet152':
+        model = models.resnet152(pretrained=pretrained)
     else:
         raise ValueError(f"不支持的模型类型: {model_type}")
     
@@ -367,6 +410,15 @@ def create_self_attention_resnet18(num_classes, input_channels=3, pretrained=Tru
 def create_self_attention_resnet50(num_classes, input_channels=3, pretrained=True):
     """创建Self-Attention ResNet50模型"""
     return SelfAttentionResNet50(
+        num_classes=num_classes,
+        input_channels=input_channels,
+        pretrained=pretrained
+    )
+
+
+def create_self_attention_resnet152(num_classes, input_channels=3, pretrained=True):
+    """创建Self-Attention ResNet152模型"""
+    return SelfAttentionResNet152(
         num_classes=num_classes,
         input_channels=input_channels,
         pretrained=pretrained
